@@ -1,66 +1,33 @@
 using Pkg
-Pkg.activate("../")
+Pkg.activate("./")
 
 
 using Revise
-using Poodl
-const  pdl  = Poodl
+import Pudley
+const  pdl  = Pudley
 
-@code_warntype pdl.createbetaparams(5)
 
-pdl.create_belief(0.1,1, (α = 0.5, β = 0.6))
+pdl.Belief(0.1,1)
 
 #stable
 @code_warntype fill(5.0, (3, 3))
 
-function array3(fillval, N)
-           fill(fillval, ntuple(d->3, N))
-end
-#unstable
-
-@code_warntype  array3(5.0, 2)
 
 
+testAgent = pdl.Agent_o(5, 1, 0.1)
 
-pdl.createbetaparams(5)
 
-testAgent = pdl.Agent_o(1, [], 0.5, [2,3,4], [1,2,3], (α =1.1, β = 1.4)) 
-
-ideology = [pdl.create_belief(0.1, 1, (α = 0.5, β = 0.6)) for issue in 1:5 ]
-
-ideology |> eltype |> x -> fieldtype(x, :o)
 
 pdl.Agent_o <: pdl.AbstractAgent
 
-@code_warntype pdl.calculatemeanopinion(ideology)
+@code_warntype pdl.calculatemeanopinion(testAgent.ideo)
 
-pdl.getpropertylist(ideology, :o)
-pdl.create_agent(pdl.Agent_o, 1, 1, 0.1, (α = 1.1, β = 1.2))
-
-
-pdl.Agent_oσ( 1, 1, 0.1, (α = 1.1, β = 1.2))
-
-ag2 = pdl.create_agent(pdl.Agent_oσ, 1, 1, 0.1, (α = 1.1, β = 1.2))
+pdl.getpropertylist(testAgent.ideo, :o)
 
 
 @code_warntype pdl.createpop(pdl.Agent_o, 0.1, 1, 2)
 
 pop1 = pdl.createpop(pdl.Agent_o, 0.1, 5, 25)
-pdl.add_neighbors!(pop1, pdl.LG.CompleteGraph)
-
-typeof(pop1)
-
-
-@code_warntype pdl.pick_intranids(pop1, 0.3, position = "center")
-
-@code_warntype pdl.turninto_intransigents!(pop1, 0.3 , position = "center")
-
-@code_warntype pdl.turninto_intransigents(pop1, 0.2 , position = "extremes")
-
-@code_warntype pdl.creategraphfrompop(pop1, pdl.LG.CompleteGraph)
-
-nw1 =  pdl.creategraphfrompop(pop1, pdl.LG.CompleteGraph)
-
 
 @doc supertype
 
@@ -70,19 +37,11 @@ nw1 =  pdl.creategraphfrompop(pop1, pdl.LG.CompleteGraph)
 
 
 
-#this is important; it proves there is something wrong with my design; maybe have a population type??
-@code_warntype pdl.add_neighbors!(pop1, pdl.LG.CompleteGraph)
-
-pdl.add_neighbors!(pop1, pdl.LG.CompleteGraph)
-
-
-eltype(pop1) == typeof(getindex(pop1,1))
-eltype(pop1) >: typeof(getindex(pop1,1))
-
-pdl.add_neighbors!(pop1, pdl.LG.CompleteGraph)
-
 @code_warntype pdl.getjtointeract(pop1[1],pop1) #the same error happens here!!!!
 
+pdl.getjtointeract(pop1[1],pop1).id #the same error happens here!!!!
+
+#HERE
 
 
 pdl.pick_issuebelief(pop1[1],  pdl.getjtointeract(pop1[1],pop1))
