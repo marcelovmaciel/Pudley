@@ -1,5 +1,5 @@
 using Pkg
-Pkg.activate("./")
+Pkg.activate("../")
 
 
 using Revise
@@ -7,14 +7,14 @@ import Pudley
 const  pdl  = Pudley
 
 
-pdl.Belief(0.1,1)
+pdl.Belief(0.1, (-5, 5))
 
 #stable
 @code_warntype fill(5.0, (3, 3))
 
 
 
-testAgent = pdl.Agent_o(5, 1, 0.1)
+testAgent = pdl.Agent_o(5,  0.1, (-5,5))
 
 
 
@@ -25,9 +25,10 @@ pdl.Agent_o <: pdl.AbstractAgent
 pdl.getpropertylist(testAgent.ideo, :o)
 
 
-@code_warntype pdl.createpop(pdl.Agent_o, 0.1, 1, 2)
+@code_warntype pdl.createpop(pdl.Agent_o, 0.1, (-5.5), 2)
 
-pop1 = pdl.createpop(pdl.Agent_o, 0.1, 5, 25)
+pop1 = pdl.createpop(pdl.Agent_o, 0.1, (-5,5), 2)
+
 
 @doc supertype
 
