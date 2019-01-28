@@ -51,7 +51,6 @@ end
 Agent_o() = Agent_o(1,0.1, (-5, 5))
 
  
-
 """
     createpop(agent_type::Type{Agent_o}, σ::Real,
     n_issues::Integer, size::Integer)::Vector{Agent_o}
@@ -75,3 +74,72 @@ function getjtointeract(i::AbstractAgent,  population)
         return(whichj)
     end
 end
+
+changing_term★(i,j) = (-((i.b.o - j.b.o)^2 / (2*i.b.σ^2)))
+
+
+function calculate_p★(i::AbstractAgent, j::AbstractAgent,
+                  p::AbstractFloat)
+    cterm =  changingterm★(i,j)
+    num = p * (1 / (sqrt(2 * π ) * i.b.σ ) ) * exp(cterm)
+    denom = num + (1 - p)
+    pstar  = num / denom
+    return(pstar)
+end
+
+
+"""
+    calc_posterior_o(i_belief::Belief, j_belief::Belief, p::AbstractFloat)
+
+Helper for update_step
+Input = beliefs in an issue and confidence paramater; Output = i new opinion
+"""
+calc_posterior_o(i_belief::Belief, j_belief::Belief, p★::AbstractFloat) = (p★ *
+                                                         ((i_belief.o + j_belief.o) / 2) +
+                                                         (1 - p★) * i_belief.o )
+
+"""
+    update_o!(i::AbstractAgent, which_issue::Integer, posterior_o::AbstractFloat)
+
+ update_step for changing opinion but not belief
+
+"""
+function update_o!(i::AbstractAgent,  posterior_o::AbstractFloat)
+    i.b.o = posterior_o
+    nothing
+end
+
+
+"""
+    updateibelief!(i::Agent_o, population, p::AbstractFloat )
+
+Main update fn; has two methods depending on the agent type
+
+"""
+function updateibelief!(i::Agent_o, population,
+                 p::AbstractFloat, ★calculator::Function)
+
+    j = getjtointeract(i,population)
+    p★ = ★calculator(i, j, p)
+    update_o!(i, calc_posterior_o(i.b,j.b, p★))
+    nothing
+end
+
+
+# Types needed for the simulation
+
+"Parameters for the simulation; makes the code cleaner"
+Param.@with_kw struct PoodlParam{R<:Real}
+    size_nw::Int = 2
+    p::R = 0.9
+    σ::R = 0.1
+    time::Int = 2
+#    ρ::R = 0.01
+    agent_type = Agent_o
+    graphcreator::Function = LG.CompleteGraph
+#   propintransigents::R = 0.1
+#   intranpositions::String = "random"
+    p★calculator::Function = calculatep★
+end
+
+

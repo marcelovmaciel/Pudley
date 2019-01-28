@@ -14,9 +14,9 @@ const RD = Random
 const Stats = Statistics
 
 # package code goes here
-include("01_basefns.jl")
-include("02_runfns.jl")
-include("03_analysisHelpers.jl")
+include("001_basefns.jl")
+#include("02_runfns.jl")
+#include("03_analysisHelpers.jl")
 
 end # module
 
