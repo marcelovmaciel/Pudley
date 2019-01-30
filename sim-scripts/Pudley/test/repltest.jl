@@ -9,6 +9,7 @@ const  pdl  = Pudley
 
 pdl.Belief(0.1, (-5, 5))
 
+
 #stable
 @code_warntype fill(5.0, (3, 3))
 
@@ -18,17 +19,22 @@ testAgent = pdl.Agent_o(5,  0.1, (-5,5))
 
 
 
-pdl.Agent_o <: pdl.AbstractAgent
-
-@code_warntype pdl.calculatemeanopinion(testAgent.ideo)
-
-pdl.getpropertylist(testAgent.ideo, :o)
-
-
 @code_warntype pdl.createpop(pdl.Agent_o, 0.1, (-5.5), 2)
 
-pop1 = pdl.createpop(pdl.Agent_o, 0.1, (-5,5), 2)
+pop1 = pdl.createpop(pdl.Agent_o, 1., (-5, 5), 2)
 
+#ns = pdl.updateijbelief!(pop1[1], pop1, 0.01, pdl.calculatep★)
+
+#pdl.updatepop!(pop1, 1, 0.5)
+
+pop1
+
+pdl.updatepop!(pop1, 100, 0.5)
+
+pop1
+#pdl.updatepopsigma!(pop1, ns)
+
+pop1
 
 @doc supertype
 
