@@ -1,3 +1,7 @@
+import Pkg
+
+import Statistics, Distributions
+Stats,Dist = Statistics, Distributions
 #Those abstract types are for later refactoring
 abstract type  AbstractAgent end
 #abstract type AbstractBelief end
@@ -55,5 +59,21 @@ function Agent_o(n_issues::Tint, id::Tint, σ::Treal,
     return(Agent_o(id,ideology, idealpoint,[0], [0], paramtuple))
 end
 
+"This fn extracts a list of properties from another list.
+If we have a container of composite types with field :o it will return a list of the :os."
+function getpropertylist(list::Vector, whichproperty::Symbol)
+    ((fieldcount(eltype(list)) > 0) ||
+      throw(ArgumentError( "can't get a propertyfrom a type without fields ")))
+    apropertylist = similar(list, fieldtype(eltype(list), whichproperty))
+    for (keys, values) in enumerate(list)
+       apropertylist[keys] = getfield(values, whichproperty)
+    end
+    return(apropertylist)
+end
 
-Agent_o() = Agent_o(1,1,0.1,(head = 0., β = 1.0))
+"calculatemeanopinion(ideology) = getpropertylist(ideology, :o) |> Stats.mean"
+calculatemeanopinion(ideology) = getpropertylist(ideology, :o) |> Stats.mean
+
+Agent_o() = Agent_o(1,1,0.1,(head = 0., tail = 1.0))
+
+Agent_o()
