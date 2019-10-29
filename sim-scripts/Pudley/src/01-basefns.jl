@@ -68,6 +68,7 @@ getbelief(foo::Agent_o) = foo.b
 
 getopinion(b::Belief) = b.o
 
+getσ(b::Belief) = b.σ
 
 function getjtointeract(population, i::AbstractAgent)
     whichj = rand(filter(x-> x != i,population))
@@ -76,3 +77,72 @@ end
 
 getpairs(pop) = Curry.partial(getjtointeract, pop).(pop)
 
+
+changingterm★(i,j) = /(-(((getopinion ∘ getbelief)(i) - (getopinion ∘ getbelief)(j))^2,
+                         (2 * (getσ ∘ getbelief)(i)^2)))
+
+
+function calculatep★(i::AbstractAgent, j::AbstractAgent,
+                  p::AbstractFloat)
+    cterm =  changingterm★(i,j)
+    num = p * (1 / (sqrt(2 * π ) * (getσ ∘ getbelief)(i))) * exp(cterm)
+    denom = num + (1 - p)
+    pstar  = num / denom
+    return(pstar)
+end
+
+"""
+    calc_posterior_o(i_belief::Belief, j_belief::Belief, p::AbstractFloat)
+
+Helper for update_step
+Input = beliefs in an issue and confidence paramater; Output = i new opinion
+"""
+calc_posterior_o( p★::AbstractFloat, i_belief::Belief, j_belief::Belief) = (p★ *
+                                                         ((getopinion(i_belief) + getopinion(j_belief)) / 2) +
+                                                         (1 - p★) * getopinion(i_belief))
+
+"""
+    update_o!(i::AbstractAgent, which_issue::Integer, posterior_o::AbstractFloat)
+
+ update_step for changing opinion but not belief
+
+"""
+function update_o!(i::AbstractAgent,  posterior_o::AbstractFloat)
+    i.b.o = posterior_o
+    nothing
+end
+
+"""
+    updateibelief!(i::Agent_o, population, p::AbstractFloat )
+
+Main update fn; has two methods depending on the agent type
+
+"""
+function updateijbelief!(i::Agent_o, population,
+                 p::AbstractFloat, ★calculator::Function)
+
+    j = getjtointeract(i,population)
+    p★ = ★calculator(i, j, p)
+    copyib = Belief(i.b.o, i.b.σ)
+    newsigma = (1 - p★/2) + p★*(1-p★)*((i.b.o - j.b.o)/2)^2
+    update_o!(i, calc_posterior_o(i.b,j.b, p★))
+    update_o!(j, calc_posterior_o(j.b, copyib, p★))
+    return(newsigma)
+end
+
+function updatesigma!(i, nsigma)
+    i.b.o = (i.b.o/ sqrt(nsigma))
+end
+
+function updatepopsigma!(population, nsigma)
+    map(x -> (updatesigma!(x, nsigma)), population)
+end
+
+
+function updatepop!(pop, iterations, p )
+    for iteration in 1:iterations
+        ns = updateijbelief!(rand(pop), pop,
+                             p, calculatep★)
+        updatepopsigma!(pop, ns)
+    end
+end
