@@ -1,7 +1,3 @@
-import Pkg
-
-import Statistics, Distributions
-Stats,Dist = Statistics, Distributions
 #Those abstract types are for later refactoring
 
 #Structs for Agents and Beliefs --------------------
@@ -35,7 +31,6 @@ mutable struct Agent_o{T1 <: Integer, T2 <: Belief} <: AbstractAgent
     b::T2
 end
 
-
 "Belief(σ::T1, whichissue::T2,
          paramtuple::T3) where {T1 <: Real, T2 <: Integer, T3 <: NamedTuple}"
 function Belief(σ::T1, interval::T2) where {T1 <: Real, T2<:Tuple}
@@ -53,9 +48,7 @@ function Agent_o(id::Tint, σ::Treal, interval::Tinter) where {Tint <: Integer,
     return(Agent_o(id,b))
 end
 
-
 Agent_o() = Agent_o(1,0.1, (-5, 5))
-
 
 """
     createpop(agent_type::Type{Agent_o}, σ::Real,
@@ -71,25 +64,9 @@ function createpop(agent_type, σ::Real, interval::Tuple,size::Integer)
     return(population)
 end
 
-
 getbelief(foo::Agent_o) = foo.b
 
 getopinion(b::Belief) = b.o
-
-
-
-
-"This fn extracts a list of properties from another list.
-If we have a container of composite types with field :o it will return a list of the :os."
-function getpropertylist(list::Vector, whichproperty::Symbol)
-    ((fieldcount(eltype(list)) > 0) ||
-      throw(ArgumentError( "can't get a propertyfrom a type without fields ")))
-    apropertylist = similar(list, fieldtype(eltype(list), whichproperty))
-    for (keys, values) in enumerate(list)
-       apropertylist[keys] = getfield(values, whichproperty)
-    end
-    return(apropertylist)
-end
 
 
 function getjtointeract(population, i::AbstractAgent)

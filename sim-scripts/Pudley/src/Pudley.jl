@@ -1,7 +1,7 @@
 module Pudley
 
 import LightGraphs, MetaGraphs, Distributions, DataFrames
-import Parameters, ProgressMeter, JLD2, Random, Statistics, StatsBase, Pkg
+import Parameters, ProgressMeter, JLD2, Random, Statistics, StatsBase
 using PyCall
 import Curry
 
