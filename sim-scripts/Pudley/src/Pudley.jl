@@ -3,6 +3,7 @@ module Pudley
 import LightGraphs, MetaGraphs, Distributions, DataFrames
 import Parameters, ProgressMeter, JLD2, Random, Statistics, StatsBase, Pkg
 using PyCall
+import Curry
 
 
 const Dist = Distributions
