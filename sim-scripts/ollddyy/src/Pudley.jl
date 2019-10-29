@@ -1,7 +1,7 @@
 module Pudley
 
 import LightGraphs, MetaGraphs, Distributions, DataFrames
-import Parameters, ProgressMeter, JLD2, Random, Statistics, StatsBase, Pkg
+import Parameters, ProgressMeter, JLD2, Random, Statistics, StatsBase
 using PyCall
 
 
@@ -14,7 +14,7 @@ const RD = Random
 const Stats = Statistics
 
 # package code goes here
-include("01-basefns.jl")
+include("001_basefns.jl")
 #include("02_runfns.jl")
 #include("03_analysisHelpers.jl")
 

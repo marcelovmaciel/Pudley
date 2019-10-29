@@ -72,13 +72,6 @@ function createpop(agent_type, σ::Real, interval::Tuple,size::Integer)
 end
 
 
-getbelief(foo::Agent_o) = foo.b
-
-getopinion(b::Belief) = b.o
-
-
-
-
 "This fn extracts a list of properties from another list.
 If we have a container of composite types with field :o it will return a list of the :os."
 function getpropertylist(list::Vector, whichproperty::Symbol)
@@ -91,20 +84,20 @@ function getpropertylist(list::Vector, whichproperty::Symbol)
     return(apropertylist)
 end
 
-# "calculatemeanopinion(ideology) = getpropertylist(ideology, :o) |> Stats.mean"
-# calculatemeanopinion(ideology) = getpropertylist(ideology, :o) |> Stats.mean
+"calculatemeanopinion(ideology) = getpropertylist(ideology, :o) |> Stats.mean"
+calculatemeanopinion(ideology) = getpropertylist(ideology, :o) |> Stats.mean
 
-# #Agent_o() = Agent_o(1,1,0.1,(head = 0., tail = 1.0))
+Agent_o() = Agent_o(1,1,0.1,(head = 0., tail = 1.0))
 
-# #Agent_o()
-# """
-#      createbetaparams(popsize::Integer)
+#Agent_o()
+"""
+     createbetaparams(popsize::Integer)
 
-# Creates a list of parameters for posterior instantiation of Belief
-# """
-# function createdistparams(popsize::Integer, distrange)
-#     popsize >= 2 || throw(DomainError(popsize, "popsize must be at least 2"))
-#     αs = range(1.1,  length = popsize , stop = 100) |> RD.shuffle
-#     βs = range(1.1, length = popsize , stop = 100) |> RD.shuffle
-#     betaparams = zip(αs,βs) |> x -> [(α = i[1], β = i[2]) for i in x]
-# end
+Creates a list of parameters for posterior instantiation of Belief
+"""
+function createdistparams(popsize::Integer, distrange)
+    popsize >= 2 || throw(DomainError(popsize, "popsize must be at least 2"))
+    αs = range(1.1,  length = popsize , stop = 100) |> RD.shuffle
+    βs = range(1.1, length = popsize , stop = 100) |> RD.shuffle
+    betaparams = zip(αs,βs) |> x -> [(α = i[1], β = i[2]) for i in x]
+end
