@@ -116,6 +116,11 @@ function update_o!(i::AbstractAgent,  posterior_o::AbstractFloat)
     nothing
 end
 
+function update_sigma!(i::AbstractAgent,  posterior_sigma::AbstractFloat)
+    i.b.σ = posterior_sigma
+    nothing
+end
+
 
 function getp★s(pairs::Vector, p = 0.9)
     pstars = Array{Float64, 1}(undef, length(pairs))
@@ -134,45 +139,25 @@ end
 
 
 
-
-
-
-
-
-
-
-
-"""
-    updateibelief!(i::Agent_o, population, p::AbstractFloat )
-
-Main update fn; has two methods depending on the agent type
-
-"""
-function updateijbelief!(i::Agent_o, population,
-                 p::AbstractFloat, ★calculator::Function)
-
-    j = getjtointeract(i,population)
-    p★ = ★calculator(i, j, p)
-    copyib = Belief(i.b.o, i.b.σ)
-    newsigma = (1 - p★/2) + p★*(1-p★)*((i.b.o - j.b.o)/2)^2
-    update_o!(i, calc_posterior_o(i.b,j.b, p★))
-    update_o!(j, calc_posterior_o(j.b, copyib, p★))
-    return(newsigma)
+function σtplus1(pstar, i::Agent_o,j::Agent_o)
+    (getσ(getbelief(i)) * (1 - pstar/2) +
+     pstar * (1 - pstar) *
+     ((getopinion(getbelief(i)) - getopinion(getbelief(j)))/2)^2)
 end
 
-function updatesigma!(i, nsigma)
-    i.b.o = (i.b.o/ sqrt(nsigma))
+σtplus1(pairs) = σtplus1.(getp★s(pairs), first.(pairs), last.(pairs))
+
+calcr(sigmastar, oldsigma) = sigmastar/oldsigma
+
+over(pairs) = calc_posterior_os(pairs) ./ calcr.(σtplus1(pairs),
+                                                 getσ.(getbelief.(first.(pairs))))
+
+
+function uppudleypop!(pop)
+    pairs = getpairs(pop)
+    newsigma = σtplus1(pairs)
+    newos = over(pairs)
+    update_o!.(pop, newos)
+    update_sigma!.(pop, newsigma)
 end
 
-function updatepopsigma!(population, nsigma)
-    map(x -> (updatesigma!(x, nsigma)), population)
-end
-
-
-function updatepop!(pop, iterations, p )
-    for iteration in 1:iterations
-        ns = updateijbelief!(rand(pop), pop,
-                             p, calculatep★)
-        updatepopsigma!(pop, ns)
-    end
-end

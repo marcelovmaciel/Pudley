@@ -14,13 +14,12 @@ using Curry
 import PyPlot
 const plt = PyPlot
 
-pop = pdl.createpop(pdl.Agent_o, 0.1, (0.0, 1.0), 500)
+pop = pdl.createpop(pdl.Agent_o, 0.1, (-5, 5), 500)
 
 plot_opinions(pop) = (sns.distplot ∘ pd.DataFrame ∘
                       partial(map,(pdl.getopinion ∘ pdl.getbelief)))(pop)
 
 
-#pairs = pdl.getpairs(pop)
 
 #const p = 0.9
 
@@ -30,15 +29,14 @@ plot_opinions(pop) = (sns.distplot ∘ pd.DataFrame ∘
 
 plot_opinions(pop)
 
-sns.savefig("imgs/plot1.png")
+sns.savefig("imgs/plot0.png")
 plt.figure()
-plt.close()
-for i in range(1, stop = 200)
-    pdl.update_o!.(pop,
-                   pdl.calc_posterior_os(pdl.getpairs(pop)))
+
+for i in range(1, stop = 2000)
+    pdl.uppudleypop!(pop)
     fig = plot_opinions(pop)
     sns.savefig("imgs/plot$(i).png")
     plt.figure()
-    plt.close()
+
 end
 
