@@ -13,34 +13,18 @@ mutable struct Belief{T1 <: Real}
     σ::T1
 end
 
-
-"""
-    mutable struct Agent_o{T1 <: Integer, T2 <: Vector, T3 <: Real,
-                       T4 <: Vector, T5 <: Tuple} <: AbstractAgent
-
-Concrete type for an Agent which only change its opinion.
-
-Fields:
- - id::Integer
- - ideo:: Vector
- - idealpoint::Real
-
-"""
 mutable struct Agent_o{T1 <: Integer, T2 <: Belief} <: AbstractAgent
     id::T1
     b::T2
 end
 
-"Belief(σ::T1, whichissue::T2,
-         paramtuple::T3) where {T1 <: Real, T2 <: Integer, T3 <: NamedTuple}"
 function Belief(σ::T1, interval::T2) where {T1 <: Real, T2<:Tuple}
     #maybe this should be inside the constructor ?? think about that...
     o = rand(Dist.Uniform(interval[1],interval[2]))
     return(Belief(o, σ))
 end
 
-"Agent_oσ(n_issues::Tint, id::Tint, σ::Treal,
-           paramtuple::TNT) where {Tint <: Integer, Treal <: Real, TNT <: NamedTuple}"
+
 function Agent_o(id::Tint, σ::Treal, interval::Tinter) where {Tint <: Integer,
                                                        Treal <: Real,
                                                        Tinter <: Tuple}
@@ -50,12 +34,6 @@ end
 
 Agent_o() = Agent_o(1,0.1, (-5, 5))
 
-"""
-    createpop(agent_type::Type{Agent_o}, σ::Real,
-    n_issues::Integer, size::Integer)::Vector{Agent_o}
-
-Creates a  vector of agents of type Agent_o
-"""
 function createpop(agent_type, σ::Real, interval::Tuple,size::Integer)
     population = Array{typeof(agent_type())}(undef, size)
     for i in 1:size
@@ -92,12 +70,7 @@ function calculatep★( p::AbstractFloat, i::AbstractAgent, j::AbstractAgent)
     return(pstar)
 end
 
-"""
-    calc_posterior_o(i_belief::Belief, j_belief::Belief, p::AbstractFloat)
 
-Helper for update_step
-Input = beliefs in an issue and confidence paramater; Output = i new opinion
-"""
 calc_posterior_o( p★::AbstractFloat,
                   i_belief::Belief,
                   j_belief::Belief) = (p★ * ((getopinion(i_belief) +
@@ -105,12 +78,7 @@ calc_posterior_o( p★::AbstractFloat,
                                        (1 - p★) *
                                        getopinion(i_belief))
 
-"""
-    update_o!(i::AbstractAgent, which_issue::Integer, posterior_o::AbstractFloat)
 
- update_step for changing opinion but not belief
-
-"""
 function update_o!(i::AbstractAgent,  posterior_o::AbstractFloat)
     i.b.o = posterior_o
     nothing
