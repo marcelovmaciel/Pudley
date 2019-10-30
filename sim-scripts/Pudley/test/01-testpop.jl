@@ -10,13 +10,16 @@ import Pudley, Pandas, Seaborn
 const pdl = Pudley
 const pd = Pandas
 const sns = Seaborn
-using Curry
 import PyPlot
 const plt = PyPlot
+using ProgressMeter
 
-pop = pdl.createpop(pdl.Agent_o, 0.1, (-5, 5), 500)
 
-plot_opinions(pop) = (sns.distplot ∘ pd.DataFrame ∘
+plt.ioff()
+
+pop = pdl.createpop(pdl.Agent_o, 2., (-5, 5), 500)
+
+plot_opinions(pop) = (sns.distplot∘ pd.DataFrame ∘
                       partial(map,(pdl.getopinion ∘ pdl.getbelief)))(pop)
 
 
@@ -27,14 +30,17 @@ plot_opinions(pop) = (sns.distplot ∘ pd.DataFrame ∘
 
 # rlbelief(pairs) = (first.(getpairbs(pairs)), last.(getpairbs(pairs)))
 
-plot_opinions(pop)
+ax = plot_opinions(pop)
+ax.set_title("iteration 0")
 
 sns.savefig("imgs/plot0.png")
 plt.figure()
 
-for i in range(1, stop = 2000)
+
+@showprogress for i in range(1, stop = 2000)
     pdl.uppudleypop!(pop)
     fig = plot_opinions(pop)
+    fig.set_title("iteration $(i)")
     sns.savefig("imgs/plot$(i).png")
     plt.figure()
 
