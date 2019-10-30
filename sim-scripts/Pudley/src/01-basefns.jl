@@ -75,15 +75,16 @@ function getjtointeract(population, i::AbstractAgent)
     return(i,whichj)
 end
 
-getpairs(pop) = Curry.partial(getjtointeract, pop).(pop)
+
+#fix the allocs later
+getpairs(pop) = Curry.partial(getjtointeract, pop::Vector).(pop)::Vector
 
 
-changingterm★(i,j) = /(-(((getopinion ∘ getbelief)(i) - (getopinion ∘ getbelief)(j))^2,
-                         (2 * (getσ ∘ getbelief)(i)^2)))
+changingterm★(i,j) = /(-((getopinion ∘ getbelief)(i) - (getopinion ∘ getbelief)(j))^2,
+                         (2 * (getσ ∘ getbelief)(i)^2)) 
 
 
-function calculatep★(i::AbstractAgent, j::AbstractAgent,
-                  p::AbstractFloat)
+function calculatep★( p::AbstractFloat, i::AbstractAgent, j::AbstractAgent)
     cterm =  changingterm★(i,j)
     num = p * (1 / (sqrt(2 * π ) * (getσ ∘ getbelief)(i))) * exp(cterm)
     denom = num + (1 - p)
@@ -97,9 +98,12 @@ end
 Helper for update_step
 Input = beliefs in an issue and confidence paramater; Output = i new opinion
 """
-calc_posterior_o( p★::AbstractFloat, i_belief::Belief, j_belief::Belief) = (p★ *
-                                                         ((getopinion(i_belief) + getopinion(j_belief)) / 2) +
-                                                         (1 - p★) * getopinion(i_belief))
+calc_posterior_o( p★::AbstractFloat,
+                  i_belief::Belief,
+                  j_belief::Belief) = (p★ * ((getopinion(i_belief) +
+                                              getopinion(j_belief)) / 2) +
+                                       (1 - p★) *
+                                       getopinion(i_belief))
 
 """
     update_o!(i::AbstractAgent, which_issue::Integer, posterior_o::AbstractFloat)
@@ -112,6 +116,32 @@ function update_o!(i::AbstractAgent,  posterior_o::AbstractFloat)
     nothing
 end
 
+
+function getp★s(pairs::Vector, p = 0.9)
+    pstars = Array{Float64, 1}(undef, length(pairs))
+    for (idx,pair)  in enumerate(pairs)
+        pstars[idx] = calculatep★( p,pair...)
+    end
+    return(pstars)
+end
+
+#refacroe tthis later
+function calc_posterior_os(pairs)
+    calc_posterior_o.(getp★s(pairs),
+                      first.(map(Curry.partial(map, getbelief), pairs)),
+                      last.(map(Curry.partial(map,getbelief), pairs)))
+end
+
+
+
+
+
+
+
+
+
+
+
 """
     updateibelief!(i::Agent_o, population, p::AbstractFloat )
 
