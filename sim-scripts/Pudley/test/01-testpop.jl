@@ -13,16 +13,15 @@ const sns = Seaborn
 import PyPlot
 const plt = PyPlot
 using ProgressMeter
-
+using Curry
 
 plt.ioff()
 
 pop = pdl.createpop(pdl.Agent_o, 2., (-5, 5), 500)
+#pairs = Array{Tuple{eltype(pop)}, 1}(undef, length(pop))
 
 plot_opinions(pop) = (sns.distplot∘ pd.DataFrame ∘
                       partial(map,(pdl.getopinion ∘ pdl.getbelief)))(pop)
-
-
 
 #const p = 0.9
 

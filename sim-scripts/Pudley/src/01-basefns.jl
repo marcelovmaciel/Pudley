@@ -55,8 +55,13 @@ end
 
 
 #fix the allocs later
-getpairs(pop) = Curry.partial(getjtointeract, pop::Vector).(pop)::Vector
-
+function getpairs(pop)
+    pairs = Array{Tuple{eltype(pop), eltype(pop)}, 1}(undef, length(pop))
+    for i in pop
+        pairs[i.id] = getjtointeract(pop, i)
+    end
+    return(pairs)
+end
 
 changingterm★(i,j) = /(-((getopinion ∘ getbelief)(i) - (getopinion ∘ getbelief)(j))^2,
                          (2 * (getσ ∘ getbelief)(i)^2)) 
@@ -80,7 +85,7 @@ calc_posterior_o( p★::AbstractFloat,
 
 
 function update_o!(i::AbstractAgent,  posterior_o::AbstractFloat)
-    i.b.o = posterior_o
+    i.b.o  = posterior_o
     nothing
 end
 
@@ -105,9 +110,7 @@ function calc_posterior_os(pairs)
                       last.(map(Curry.partial(map,getbelief), pairs)))
 end
 
-
-
-function σtplus1(pstar, i::Agent_o,j::Agent_o)
+function σtplus1(pstar, i::Agent_o,j::Agent_o)::Float64
     (getσ(getbelief(i)) * (1 - pstar/2) +
      pstar * (1 - pstar) *
      ((getopinion(getbelief(i)) - getopinion(getbelief(j)))/2)^2)
@@ -117,7 +120,7 @@ end
 
 calcr(sigmastar, oldsigma) = sigmastar/oldsigma
 
-over(pairs) = calc_posterior_os(pairs) ./ calcr.(σtplus1(pairs),
+over(pairs)::Vector{Float64} = calc_posterior_os(pairs) ./ calcr.(σtplus1(pairs),
                                                  getσ.(getbelief.(first.(pairs))))
 
 
