@@ -6,16 +6,16 @@ import Revise
 
 Pkg.activate("../../Pudley")
 
-import Pudley ,  Pandas, Seaborn
+import Pudley #,  Pandas, Seaborn
 const pdl = Pudley
-const pd = Pandas
-const sns = Seaborn
-import PyPlot
-const plt = PyPlot
+#const pd = Pandas
+#const sns = Seaborn
+#import PyPlot
+#const plt = PyPlot
 using ProgressMeter
-
+using BenchmarkTools
 using Curry
-plt.ion()
+#plt.ion()
 using  Plots
 Plots.gr(legend = false)
 
@@ -25,8 +25,8 @@ Plots.gr(legend = false)
 #@time pdl.createpop(pdl.Agent_o, 2., (-5, 5), 500)
 #pairs = Array{Tuple{eltype(pop)}, 1}(undef, length(pop))
 
-plot_opinions(pop) = (sns.distplot ∘ pd.DataFrame ∘
-                      partial(map,(pdl.getopinion ∘ pdl.getbelief)))(pop)
+# plot_opinions(pop) = (sns.distplot ∘ pd.DataFrame ∘
+#                       partial(map,(pdl.getopinion ∘ pdl.getbelief)))(pop)
 
 #@time pdl.getpairs(pop)
 #const p = 0.9
@@ -41,7 +41,7 @@ plot_opinions(pop) = (sns.distplot ∘ pd.DataFrame ∘
 # sns.savefig("imgs/plot0.png")
 # plt.figure()
 
-function getstatearray(pop;  simend = 2000)
+function getstatearray(pop;  simend = 100_000)
     result = Array{eltype(pop)}(undef, length(pop), simend)
     result[:, 1] .= deepcopy(pop)
     for i in range(2, stop = simend)
@@ -88,25 +88,52 @@ function plotseries(simresult, ylim)
                plotfn = (fig, x) ->  Plots.plot!(fig,
                                                 partial(map,
                                                         (pdl.getopinion ∘ pdl.getbelief))(x),
-                                                ylim = ylim
+                                                ylim = ylim,
                                                 linealpha = 0.2))
+               
 end
 
+pop = pdl.createpop(pdl.Agent_o, 2., (-5, 5), 500)# ;
+# @btime pdl.getjtointeract(pop, pop[1])
+# @code_warntype pdl.getjtointeract(pop, pop[1])
+# @code_warntype pdl.getbelief(pop[1])
 
+# @code_warntype  pdl.getpairs(pop, pairs)
 
+# @code_warntype  pdl.createpairs(pop)
 
+# @btime pdl.createpop(pdl.Agent_o, 2., (-5, 5), 100);
+# @code_warntype pdl.createpop(pdl.Agent_o, 2., (-5, 5), 100);
 
+# @btime rand(pdl.Dist.DiscreteUniform(1, length(pop)))
 
-pop = pdl.createpop(pdl.Agent_o, 2., (-5, 5), 500);
+# @btime pdl.emptypop(pdl.Agent_o, 500)
+# @btime pdl.createbeliefs( 2., (-5, 5), 100)
+# @btime pdl.fillpop( pdl.emptypop(pdl.Agent_o, 500), 2., (-5, 5) )
+# @btime pdl.createpairs(pop)
 
+ pairss = pdl.createpairs(pop)
+
+# @btime pdl.fillpairs!(pop,pairss)
+# @btime (i -> pdl.getjtointeract(pop, i)).(pop)
 result = getstatearray(pop);
 
 fig1 = plotseries(result)
 
+Plots.png("test1")
+
 fig2 = plotseries(result, (-20, 20))
+
+Plots.png("test2")
 
 fig3 = plotseries(result, (-5,5))
 
-plot(fig1, fig2, fig3,  layout = (3,1))
+Plots.png("test3")
 
-Plots.png("test1")
+#plot(fig1, fig2, fig3,  layout = (3,1))
+
+pop[rand(length(pop))]
+using  Distributions
+pop[rand(DiscreteUniform(0,length(pop)))]
+
+eltype(pop)

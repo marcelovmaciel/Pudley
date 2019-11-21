@@ -32,15 +32,22 @@ function Agent_o(id::Tint, σ::Treal, interval::Tinter) where {Tint <: Integer,
     return(Agent_o(id,b))
 end
 
-Agent_o() = Agent_o(1,0.1, (-5, 5))
+Agent_o() = Agent_o(1, 0.1, (-5, 5))
 
-function createpop(agent_type, σ::Real, interval::Tuple,size::Integer)
-    population = Array{typeof(agent_type())}(undef, size)
+emptypop(agent_type, size) = Vector{typeof(agent_type())}(undef, size)
+
+createbeliefs(σ, interval, size) = [Belief(σ, interval) for i in 1:size]
+
+function fillpop(pop, σ, interval)
+    size = length(pop)
     for i in 1:size
-        population[i] = agent_type(i,σ,interval)
+        pop[i] =  eltype(pop)(i, Belief(σ, interval))
     end
-    return(population)
+    return(pop)
+
 end
+
+createpop(agent_type, σ, interval, size) = fillpop(emptypop(agent_type,size), σ, interval)
 
 getbelief(foo::Agent_o) = foo.b
 
@@ -48,20 +55,22 @@ getopinion(b::Belief) = b.o
 
 getσ(b::Belief) = b.σ
 
-function getjtointeract(population, i::AbstractAgent)
-    whichj = rand(filter(x-> x != i,population))
+
+function getjtointeract(population::Vector{T}, i::T) where T
+    whichj = rand(population)
+    if i == whichj
+        getjtointeract(population, i)
+    end
     return(i,whichj)
 end
 
-
+emptypairs(pop) = Vector{Tuple{eltype(pop), eltype(pop)}}(undef, length(pop))
 #fix the allocs later
-function getpairs(pop)
-    pairs = Array{Tuple{eltype(pop), eltype(pop)}, 1}(undef, length(pop))
-    for i in pop
-        pairs[i.id] = getjtointeract(pop, i)
-    end
-    return(pairs)
+function fillpairs!(pop, pairs)
+    pairs .= (i -> getjtointeract(pop, i)).(pop)
 end
+
+createpairs(pop) = fillpairs!(pop, emptypairs(pop))
 
 changingterm★(i,j) = /(-((getopinion ∘ getbelief)(i) - (getopinion ∘ getbelief)(j))^2,
                          (2 * (getσ ∘ getbelief)(i)^2)) 
@@ -125,7 +134,7 @@ over(pairs)::Vector{Float64} = calc_posterior_os(pairs) ./ calcr.(σtplus1(pairs
 
 
 function uppudleypop!(pop)
-    pairs = getpairs(pop)
+    pairs = createpairs(pop)
     newsigma = σtplus1(pairs)
     newos = over(pairs)
     update_o!.(pop, newos)
