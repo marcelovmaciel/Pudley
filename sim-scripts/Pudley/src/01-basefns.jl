@@ -36,7 +36,13 @@ Agent_o() = Agent_o(1, 0.1, (-5, 5))
 
 emptypop(agent_type, size) = Vector{typeof(agent_type())}(undef, size)
 
-createbeliefs(σ, interval, size) = [Belief(σ, interval) for i in 1:size]
+emptybeliefs(size) = Vector{Belief}(undef, size)
+
+function fillbeliefs(bfs, σ, interval)
+    bfs .= Belief(σ, interval)
+end
+
+createbeliefs(σ, interval, size) = fillbeliefs(emptybeliefs(size), σ, interval)
 
 function fillpop(pop, σ, interval)
     size = length(pop)
@@ -114,9 +120,7 @@ end
 
 #refacroe tthis later
 function calc_posterior_os(pairs)
-    calc_posterior_o.(getp★s(pairs),
-                      first.(map(Curry.partial(map, getbelief), pairs)),
-                      last.(map(Curry.partial(map,getbelief), pairs)))
+    calc_posterior_o.(getp★s(pairs),(getbelief ∘ first).(pairs),(getbelief ∘ last).( pairs))
 end
 
 function σtplus1(pstar, i::Agent_o,j::Agent_o)::Float64
