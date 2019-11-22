@@ -20,7 +20,7 @@ end
 
 function Belief(σ::T1, interval::T2) where {T1 <: Real, T2<:Tuple}
     #maybe this should be inside the constructor ?? think about that...
-    o = rand(Dist.Uniform(interval[1],interval[2]))
+    o = BigFloat(rand(Dist.Uniform(interval[1],interval[2])))
     return(Belief(o, σ))
 end
 
@@ -32,7 +32,7 @@ function Agent_o(id::Tint, σ::Treal, interval::Tinter) where {Tint <: Integer,
     return(Agent_o(id,b))
 end
 
-Agent_o() = Agent_o(1, 0.1, (-5, 5))
+Agent_o() = Agent_o(1, BigFloat(0.1), (-5, 5))
 
 emptypop(agent_type, size) = Vector{typeof(agent_type())}(undef, size)
 
@@ -47,7 +47,7 @@ createbeliefs(σ, interval, size) = fillbeliefs(emptybeliefs(size), σ, interval
 function fillpop(pop, σ, interval)
     size = length(pop)
     for i in 1:size
-        pop[i] =  eltype(pop)(i, Belief(σ, interval))
+        pop[i] =  eltype(pop)(i, Belief(BigFloat(σ), interval))
     end
     return(pop)
 
@@ -111,7 +111,7 @@ end
 
 
 function getp★s(pairs::Vector, p = 0.9)
-    pstars = Array{Float64, 1}(undef, length(pairs))
+    pstars = Array{BigFloat, 1}(undef, length(pairs))
     for (idx,pair)  in enumerate(pairs)
         pstars[idx] = calculatep★( p,pair...)
     end
@@ -123,7 +123,7 @@ function calc_posterior_os(pairs)
     calc_posterior_o.(getp★s(pairs),(getbelief ∘ first).(pairs),(getbelief ∘ last).( pairs))
 end
 
-function σtplus1(pstar, i::Agent_o,j::Agent_o)::Float64
+function σtplus1(pstar, i::Agent_o,j::Agent_o)::BigFloat
     (getσ(getbelief(i)) * (1 - pstar/2) +
      pstar * (1 - pstar) *
      ((getopinion(getbelief(i)) - getopinion(getbelief(j)))/2)^2)
@@ -133,7 +133,7 @@ end
 
 calcr(sigmastar, oldsigma) = sigmastar/oldsigma
 
-over(pairs)::Vector{Float64} = calc_posterior_os(pairs) ./ calcr.(σtplus1(pairs),
+over(pairs)::Vector{BigFloat} = calc_posterior_os(pairs) ./ calcr.(σtplus1(pairs),
                                                  getσ.(getbelief.(first.(pairs))))
 
 

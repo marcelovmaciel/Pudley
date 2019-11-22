@@ -41,7 +41,7 @@ Plots.gr(legend = false)
 # sns.savefig("imgs/plot0.png")
 # plt.figure()
 
-function getstatearray(pop;  simend = 100_000)
+function getstatearray(pop;  simend = 20_000)
     result = Array{eltype(pop)}(undef, length(pop), simend)
     result[:, 1] .= deepcopy(pop)
     for i in range(2, stop = simend)
@@ -70,8 +70,7 @@ end
 function plotseries(simresult;
              plotfn = (fig, x) ->  Plots.plot!(fig,
                                               partial(map,
-                                                      (pdl.getopinion ∘ pdl.getbelief))(x),
-                                              linealpha = 0.2))
+                                                      (pdl.getopinion ∘ pdl.getbelief))(x)))
     fig1 = Plots.plot(show = false, xlabel = "iterations",
                 ylabel = "opinions",
                     dpi = 200)
@@ -93,7 +92,8 @@ function plotseries(simresult, ylim)
                
 end
 
-pop = pdl.createpop(pdl.Agent_o, 2., (-5, 5), 500)# ;
+pop = pdl.createpop(pdl.Agent_o, 2., (-5, 5), 50)
+
 # @btime pdl.getjtointeract(pop, pop[1])
 # @code_warntype pdl.getjtointeract(pop, pop[1])
 # @code_warntype pdl.getbelief(pop[1])
@@ -112,28 +112,27 @@ pop = pdl.createpop(pdl.Agent_o, 2., (-5, 5), 500)# ;
 # @btime pdl.fillpop( pdl.emptypop(pdl.Agent_o, 500), 2., (-5, 5) )
 # @btime pdl.createpairs(pop)
 
- pairss = pdl.createpairs(pop)
 
+# @code_warntype pdl.uppudleypop!(pop)
+# @btime pdl.uppudleypop!(pop)
 # @btime pdl.fillpairs!(pop,pairss)
 # @btime (i -> pdl.getjtointeract(pop, i)).(pop)
 result = getstatearray(pop);
 
-fig1 = plotseries(result)
 
-Plots.png("test1")
+result[1, 40_000:end]
+
+fig1 = plotseries(result, (-200,200))
+
+Plots.png("test1_100")
 
 fig2 = plotseries(result, (-20, 20))
 
-Plots.png("test2")
+Plots.png("test2_100")
 
 fig3 = plotseries(result, (-5,5))
 
-Plots.png("test3")
+Plots.png("test3_100")
 
 #plot(fig1, fig2, fig3,  layout = (3,1))
 
-pop[rand(length(pop))]
-using  Distributions
-pop[rand(DiscreteUniform(0,length(pop)))]
-
-eltype(pop)
