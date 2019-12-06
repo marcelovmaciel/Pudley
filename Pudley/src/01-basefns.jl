@@ -55,11 +55,11 @@ end
 
 createpop(agent_type, σ, interval, size) = fillpop(emptypop(agent_type,size), σ, interval)
 
-getbelief(foo::Agent_o) = foo.b
+getbelief(foo) = foo.b
 
-getopinion(b::Belief) = b.o
+getopinion(b) = b.o
 
-getσ(b::Belief) = b.σ
+getσ(b) = b.σ
 
 
 function getjtointeract(population::Vector{T}, i::T) where T

@@ -8,17 +8,10 @@ Pkg.activate("../../Pudley")
 
 import Pudley #,  Pandas, Seaborn
 const pdl = Pudley
-#const pd = Pandas
-#const sns = Seaborn
-#import PyPlot
-#const plt = PyPlot
-using ProgressMeter
 using BenchmarkTools
-using Curry
-#plt.ion()
 using  Plots
 Plots.gr(legend = false)
-
+using Curry
 
 #@code_warntype pdl.createpop(pdl.Agent_o, 2., (-5, 5), 500)
 
@@ -41,7 +34,7 @@ Plots.gr(legend = false)
 # sns.savefig("imgs/plot0.png")
 # plt.figure()
 
-function getstatearray(pop;  simend = 20_000)
+function getstatearray(pop;  simend = 500_000)
     result = Array{eltype(pop)}(undef, length(pop), simend)
     result[:, 1] .= deepcopy(pop)
     for i in range(2, stop = simend)
@@ -92,7 +85,7 @@ function plotseries(simresult, ylim)
                
 end
 
-pop = pdl.createpop(pdl.Agent_o, 2., (-5, 5), 50)
+pop = pdl.createpop(pdl.Agent_o, 2., (-5, 5), 50);
 
 # @btime pdl.getjtointeract(pop, pop[1])
 # @code_warntype pdl.getjtointeract(pop, pop[1])
@@ -108,6 +101,7 @@ pop = pdl.createpop(pdl.Agent_o, 2., (-5, 5), 50)
 # @btime rand(pdl.Dist.DiscreteUniform(1, length(pop)))
 
 # @btime pdl.emptypop(pdl.Agent_o, 500)
+
 # @btime pdl.createbeliefs( 2., (-5, 5), 100)
 # @btime pdl.fillpop( pdl.emptypop(pdl.Agent_o, 500), 2., (-5, 5) )
 # @btime pdl.createpairs(pop)
@@ -120,19 +114,26 @@ pop = pdl.createpop(pdl.Agent_o, 2., (-5, 5), 50)
 result = getstatearray(pop);
 
 
-result[1, 40_000:end]
+inithist = histogram(partial(map, (pdl.getopinion ∘ pdl.getbelief))(result[:,1]), title = "initial condition")
+Plots.png("inithist")
+
+
+inithist = histogram(partial(map, (pdl.getopinion ∘ pdl.getbelief))(result[:,end]), title = "end condition")
+Plots.png("endhist")
+
 
 fig1 = plotseries(result, (-200,200))
 
-Plots.png("test1_100")
+Plots.png("test1_50")
 
 fig2 = plotseries(result, (-20, 20))
 
-Plots.png("test2_100")
+Plots.png("test2_50")
 
 fig3 = plotseries(result, (-5,5))
 
-Plots.png("test3_100")
+Plots.png("test3_50")
 
 #plot(fig1, fig2, fig3,  layout = (3,1))
+
 
