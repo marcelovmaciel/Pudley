@@ -15,14 +15,28 @@ mutable struct Agent_o <: AbstractAgent
     σ::Real
 end
 
-function Agent_o(id::Int, pos::Int, σ::Real, interval::Tuple{Real, Real})
-    o = BigFloat(rand(Dist.Uniform(interval[1], interval[2])))
+function sampleopinion(
+        interval::Tuple{Real, Real}, 
+        distribution = Dist.Uniform) 
+    BigFloat(rand(distribution(
+                interval[1], 
+                interval[2])))
+end
+
+function Agent_o(
+        id::Int,
+        pos::Int,
+        σ::Real,
+        interval::Tuple{Real, Real})
+    o = sampleopinion(interval)
     return(Agent_o(id,pos, interval, o, σ))
 end
 
 Agent_o() = Agent_o(0,0,0.1, (-5, 5))
 
-space(n) = Abm.Space(LG.complete_graph(n))
+space(n, graph) = Abm.Space(graph(n))
+space(n) = space(n, LG.complete_graph)
+
 # emptypop(agent_type, size) = Vector{typeof(agent_type())}(undef, size)
 
 # emptybeliefs(size) = Vector{Belief}(undef, size)
