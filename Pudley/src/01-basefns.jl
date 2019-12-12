@@ -35,6 +35,30 @@ model(agentype, myspace, scheduler) = Abm.ABM(agentype, myspace, scheduler = sch
 
 model(n) = model(Agent_o, space(n), Abm.fastest)
 
+function emptypop(agent_type, size) 
+    Vector{typeof(agent_type())}(undef, size)
+end
+
+function fillpop!(pop, σ, interval)
+    size = length(pop)
+    for i in 1:size
+        pop[i] =  eltype(pop)(i,i,σ, interval)
+    end
+end
+
+function createpop(agent_type, σ, interval, size) 
+    pop = emptypop(agent_type,size)
+    fillpop!(pop, σ, interval)
+    return(pop)
+end
+
+
+# function fillmodel!(model, n, σ, interval )
+#     for i in 1:n
+#         Abm.add_agent!(model, )
+
+# end
+
 # function getjtointeract(population::Vector{T}, i::T) where T
 #     whichj = rand(population)s
 #     if i == whichj
