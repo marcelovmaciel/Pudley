@@ -1,13 +1,7 @@
 #Those abstract types are for later refactoring
 
 #Structs for Agents and Beliefs --------------------
-
-#Those abstract types are for later refactoring
-abstract type  AbstractAgent end
-#abstract type AbstractBelief end
-#abstract type AgentAttribute end
-
-mutable struct Agent_o <: AbstractAgent
+mutable struct Agent_o <: Abm.AbstractAgent
     id::Int
     pos::Int
     interval::Tuple{Real, Real}
@@ -37,36 +31,12 @@ Agent_o() = Agent_o(0,0,0.1, (-5, 5))
 space(n, graph) = Abm.Space(graph(n))
 space(n) = space(n, LG.complete_graph)
 
-# emptypop(agent_type, size) = Vector{typeof(agent_type())}(undef, size)
+model(agentype, myspace, scheduler) = Abm.ABM(agentype, myspace, scheduler = scheduler)
 
-# emptybeliefs(size) = Vector{Belief}(undef, size)
-
-# function fillbeliefs(bfs, σ, interval)
-#     bfs .= Belief(σ, interval)
-# end
-
-# createbeliefs(σ, interval, size) = fillbeliefs(emptybeliefs(size), σ, interval)
-
-# function fillpop(pop, σ, interval)
-#     size = length(pop)
-#     for i in 1:size
-#         pop[i] =  eltype(pop)(i, Belief(BigFloat(σ), interval))
-#     end
-#     return(pop)
-
-# end
-
-# createpop(agent_type, σ, interval, size) = fillpop(emptypop(agent_type,size), σ, interval)
-
-# getbelief(foo) = foo.b
-
-# getopinion(b) = b.o
-
-# getσ(b) = b.σ
-
+model(n) = model(Agent_o, space(n), Abm.fastest)
 
 # function getjtointeract(population::Vector{T}, i::T) where T
-#     whichj = rand(population)
+#     whichj = rand(population)s
 #     if i == whichj
 #         getjtointeract(population, i)
 #     end
