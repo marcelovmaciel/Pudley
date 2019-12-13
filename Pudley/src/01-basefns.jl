@@ -8,15 +8,6 @@ mutable struct Agent_o{
     σ::Sigmafield 
 end
 
-function sampleopinion(
-        interval::Tuple{Number, Number}, 
-        distribution = Dist.Uniform) 
-    #BigFloat may be needed
-    rand(distribution(
-                interval[1], 
-                interval[2]))
-end
-
 Agent_o() = Agent_o(0,0,0., 2.)
 
 space(n::Int, graph) = Abm.Space(graph(n))
@@ -46,25 +37,26 @@ function fillpop!(pop,  opinionarray, σ,
     return(pop)
 end
 
+    
 function createpop(agent_type,n, σ, interval) 
     fillpop!(emptypop(agent_type, n), 
         opinionarray(interval, n),  σ)
 end
 
 # createpop(n) = createpop(Agent_o, 2, (-5, 5),n)
-function fillmodel!(model, pop) 
-    for i in 1:length(pop)
-        Abm.add_agent!(pop[i], i, model)
+function fillmodel!(m, population) 
+    for i in 1:length(population)
+        Abm.add_agent!(population[i], i, m)
     end
-    return(model)
+    return(m)
 end 
 
-function fillmodel!(model, n, σ, interval, agent_type = Agent_o ) 
-    pop = createpop(agent_type,n, σ, interval) 
+function fillmodel!(m, n, σ, interval, agent_type = Agent_o ) 
+    population = createpop(agent_type,n, σ, interval) 
     for i in 1:n
-        Abm.add_agent!(pop[i], i, model)
+        Abm.add_agent!(population[i], i, model)
     end
-    return(model)
+    return(m)
 end 
 
 function getjtointeract(a, m)
@@ -122,8 +114,8 @@ function model_initiation(;n= 200,
         interval =  (-5, 5),
         agent_type = Agent_o)
     m = model(n)
-    p= createpop(agent_type, n,  σ, interval)
-    fillmodel!(m, p)
+    population = createpop(agent_type, n,  σ, interval)
+    fillmodel!(m, population)
     return(m)   
 end
 
@@ -134,7 +126,7 @@ function pudley_step!(m, p = 0.9 )
         b = js[i]
         p★ = calculatep★(p, a, b)
         sigmatplus1 = σtplus1(p★, a, b)
-        newo = calc_posterior_o(p★,a, b) 
+        newo = calc_posterior_o(p★,a, b) / calcr(sigmatplus1, σ(a) )
         update_o!(a, newo)
         update_sigma!(a, sigmatplus1)
     end
