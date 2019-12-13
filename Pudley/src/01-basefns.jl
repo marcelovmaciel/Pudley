@@ -1,144 +1,141 @@
-#Those abstract types are for later refactoring
-
-#Structs for Agents and Beliefs --------------------
-mutable struct Agent_o <: Abm.AbstractAgent
-    id::Int
-    pos::Int
-    interval::Tuple{Real, Real}
-    o::Real
-    σ::Real
+mutable struct Agent_o{
+    Posfield <: Int,
+    Ofield <: AbstractFloat,
+    Sigmafield <: AbstractFloat} <: Abm.AbstractAgent
+    id::Posfield
+    pos::Posfield
+    o::Ofield
+    σ::Sigmafield 
 end
 
 function sampleopinion(
-        interval::Tuple{Real, Real}, 
+        interval::Tuple{Number, Number}, 
         distribution = Dist.Uniform) 
-    BigFloat(rand(distribution(
+    #BigFloat may be needed
+    rand(distribution(
                 interval[1], 
-                interval[2])))
+                interval[2]))
 end
 
-function Agent_o(
-        id::Int,
-        pos::Int,
-        σ::Real,
-        interval::Tuple{Real, Real})
-    o = sampleopinion(interval)
-    return(Agent_o(id,pos, interval, o, σ))
-end
+Agent_o() = Agent_o(0,0,0., 2.)
 
-Agent_o() = Agent_o(0,0,0.1, (-5, 5))
-
-space(n, graph) = Abm.Space(graph(n))
+space(n::Int, graph) = Abm.Space(graph(n))
 space(n) = space(n, LG.complete_graph)
 
 model(agentype, myspace, scheduler) = Abm.ABM(agentype, myspace, scheduler = scheduler)
 
 model(n) = model(Agent_o, space(n), Abm.fastest)
 
-function emptypop(agent_type, size) 
-    Vector{typeof(agent_type())}(undef, size)
+function emptypop(agent_type, n::Int)
+    Vector{typeof(agent_type())}(undef,n)
 end
 
-function fillpop!(pop, σ, interval)
-    size = length(pop)
-    for i in 1:size
-        pop[i] =  eltype(pop)(i,i,σ, interval)
+function opinionarray(interval, n , 
+        distribution = Dist.Uniform)
+    opinions = Vector{Float64}(undef, n)
+   @. opinions = rand(distribution(interval[1], interval[2]))
+    return(opinions)
+end
+
+function fillpop!(pop,  opinionarray, σ,
+        agent_type = Agent_o)  
+    poplen = length(pop)
+    for i in 1:poplen
+        pop[i] = agent_type(i,i,opinionarray[i], σ)
     end
-end
-
-function createpop(agent_type, σ, interval, size) 
-    pop = emptypop(agent_type,size)
-    fillpop!(pop, σ, interval)
     return(pop)
 end
 
+function createpop(agent_type,n, σ, interval) 
+    fillpop!(emptypop(agent_type, n), 
+        opinionarray(interval, n),  σ)
+end
 
-# function fillmodel!(model, n, σ, interval )
-#     for i in 1:n
-#         Abm.add_agent!(model, )
+# createpop(n) = createpop(Agent_o, 2, (-5, 5),n)
+function fillmodel!(model, pop) 
+    for i in 1:length(pop)
+        Abm.add_agent!(pop[i], i, model)
+    end
+    return(model)
+end 
 
-# end
+function fillmodel!(model, n, σ, interval, agent_type = Agent_o ) 
+    pop = createpop(agent_type,n, σ, interval) 
+    for i in 1:n
+        Abm.add_agent!(pop[i], i, model)
+    end
+    return(model)
+end 
 
-# function getjtointeract(population::Vector{T}, i::T) where T
-#     whichj = rand(population)s
-#     if i == whichj
-#         getjtointeract(population, i)
-#     end
-#     return(i,whichj)
-# end
+function getjtointeract(a, m)
+    Abm.id2agent(rand(Abm.node_neighbors(a,m)),m)
+end
 
-# emptypairs(pop) = Vector{Tuple{eltype(pop), eltype(pop)}}(undef, length(pop))
-# #fix the allocs later
-# function fillpairs!(pop, pairs)
-#     pairs .= (i -> getjtointeract(pop, i)).(pop)
-# end
+# not okay the type stability here
+function getjstointeract(m)
+    js = Vector{typeof(Abm.id2agent(1,m))}(undef, Abm.nv(m))
+    for i in Abm.nodes(m)
+    js[i] = getjtointeract(i, m)
+    end
+    return(js)
+end
 
-# createpairs(pop) = fillpairs!(pop, emptypairs(pop))
+getopinion(a) = a.o
+o(a) = getopinion(a)
+getσ(a) = a.σ
+σ(a)= getσ(a) 
 
-# changingterm★(i,j) = /(-((getopinion ∘ getbelief)(i) - (getopinion ∘ getbelief)(j))^2,
-#                          (2 * (getσ ∘ getbelief)(i)^2)) 
+function changingterm★(i,j) 
+-(o(i) - o(j))^2 / (2 *σ(i)^2) 
+end
 
+function calculatep★(p::AbstractFloat, i, j) 
+    cterm =  changingterm★(i,j)
+    num = p * (1 / (sqrt(2 * π ) * σ(i))) * exp(cterm)
+    denom = num + (1 - p)
+    pstar  = num / denom
+    return(pstar)
+end
 
-# function calculatep★( p::AbstractFloat, i::AbstractAgent, j::AbstractAgent)
-#     cterm =  changingterm★(i,j)
-#     num = p * (1 / (sqrt(2 * π ) * (getσ ∘ getbelief)(i))) * exp(cterm)
-#     denom = num + (1 - p)
-#     pstar  = num / denom
-#     return(pstar)
-# end
+function calc_posterior_o(p★,i, j) 
+    p★ * ((o(i) +o(j) / 2) + (1 - p★) * o(i))
+end
 
+function update_o!(i,  posterior_o)
+    i.o  = posterior_o
+    nothing
+end
 
-# calc_posterior_o( p★::AbstractFloat,
-#                   i_belief::Belief,
-#                   j_belief::Belief) = (p★ * ((getopinion(i_belief) +
-#                                               getopinion(j_belief)) / 2) +
-#                                        (1 - p★) *
-#                                        getopinion(i_belief))
+function update_sigma!(i, posterior_sigma)
+    i.σ = posterior_sigma
+    nothing
+end
 
+function σtplus1(pstar, i,j)
+    ((σ(i) * (1 - pstar/2) + pstar * (1 - pstar) * (o(i) - o(j)))/2)^2
+end
 
-# function update_o!(i::AbstractAgent,  posterior_o::AbstractFloat)
-#     i.b.o  = posterior_o
-#     nothing
-# end
+calcr(sigmastar, oldsigma) = sigmastar/oldsigma
 
-# function update_sigma!(i::AbstractAgent,  posterior_sigma::AbstractFloat)
-#     i.b.σ = posterior_sigma
-#     nothing
-# end
+function model_initiation(;n= 200,
+        σ = 2., 
+        interval =  (-5, 5),
+        agent_type = Agent_o)
+    m = model(n)
+    p= createpop(agent_type, n,  σ, interval)
+    fillmodel!(m, p)
+    return(m)   
+end
 
-
-# function getp★s(pairs::Vector, p = 0.9)
-#     pstars = Array{BigFloat, 1}(undef, length(pairs))
-#     for (idx,pair)  in enumerate(pairs)
-#         pstars[idx] = calculatep★( p,pair...)
-#     end
-#     return(pstars)
-# end
-
-# #refacroe tthis later
-# function calc_posterior_os(pairs)
-#     calc_posterior_o.(getp★s(pairs),(getbelief ∘ first).(pairs),(getbelief ∘ last).( pairs))
-# end
-
-# function σtplus1(pstar, i::Agent_o,j::Agent_o)::BigFloat
-#     (getσ(getbelief(i)) * (1 - pstar/2) +
-#      pstar * (1 - pstar) *
-#      ((getopinion(getbelief(i)) - getopinion(getbelief(j)))/2)^2)
-# end
-
-# σtplus1(pairs) = σtplus1.(getp★s(pairs), first.(pairs), last.(pairs))
-
-# calcr(sigmastar, oldsigma) = sigmastar/oldsigma
-
-# over(pairs)::Vector{BigFloat} = calc_posterior_os(pairs) ./ calcr.(σtplus1(pairs),
-#                                                  getσ.(getbelief.(first.(pairs))))
-
-
-# function uppudleypop!(pop)
-#     pairs = createpairs(pop)
-#     newsigma = σtplus1(pairs)
-#     newos = over(pairs)
-#     update_o!.(pop, newos)
-#     update_sigma!.(pop, newsigma)
-# end
-
+function pudley_step!(m, p = 0.9 )
+    js = getjstointeract(m)
+    for i in Abm.nodes(m)
+        a = Abm.id2agent(i,m)
+        b = js[i]
+        p★ = calculatep★(p, a, b)
+        sigmatplus1 = σtplus1(p★, a, b)
+        newo = calc_posterior_o(p★,a, b) 
+        update_o!(a, newo)
+        update_sigma!(a, sigmatplus1)
+    end
+end
