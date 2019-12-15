@@ -17,7 +17,8 @@ function model(agentype, myspace, scheduler)
     Abm.ABM(agentype, myspace,  scheduler = scheduler)
 end
 
-model(n) = model(Agent_o, space(n), Abm.fastest)
+myscheduler(m) = Abm.keys(m.agents)
+model(n) = model(Agent_o, space(n), myscheduler)
 
 function emptypop(agent_type, n::Int)
     Vector{typeof(agent_type())}(undef,n)
@@ -111,14 +112,14 @@ end
 
 calcr(sigmastar, oldsigma) = sigmastar/oldsigma
 
-function model_initiation(;n= 200,
-        σ = 2., 
+function model_initialize(;n= 200,
+        σ = 2.,
         interval =  (-5, 5),
         agent_type = Agent_o)
     m = model(n)
     population = createpop(agent_type, n,  σ, interval)
     fillmodel!(m, population)
-    return(m)   
+    return(m)
 end
 
 function pudley_step!(m, p = 0.9 )
