@@ -3,9 +3,9 @@ module Pudley
 import LightGraphs, MetaGraphs, Distributions, DataFrames
 import Parameters, ProgressMeter, JLD2, Random, Statistics, StatsBase
 using PyCall
-import Curry
-using StaticArrays
+import Agents
 
+const Abm = Agents
 const Dist = Distributions
 const DF = DataFrames
 const Param = Parameters
