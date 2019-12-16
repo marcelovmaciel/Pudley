@@ -13,12 +13,9 @@ Agent_o() = Agent_o(0,0,0., 2.)
 space(n::Int, graph) = Abm.Space(graph(n))
 space(n) = space(n, LG.complete_graph)
 
-function model(agentype, myspace, scheduler)
-    Abm.ABM(agentype, myspace,  scheduler = scheduler)
-end
+model(agentype, myspace, scheduler) = Abm.ABM(agentype, myspace, scheduler = scheduler)
 
-myscheduler(m) = Abm.keys(m.agents)
-model(n) = model(Agent_o, space(n), myscheduler)
+model(n) = model(Agent_o, space(n), Abm.fastest)
 
 function emptypop(agent_type, n::Int)
     Vector{typeof(agent_type())}(undef,n)
@@ -86,14 +83,14 @@ end
 
 function calculatep★(p::AbstractFloat, i, j) 
     cterm =  changingterm★(i,j)
-    num = p * (1 / (√(2 * π) * σ(i))) * exp(cterm)
+    num = p * (1 / (sqrt(2 * π ) * σ(i))) * exp(cterm)
     denom = num + (1 - p)
     pstar  = num / denom
     return(pstar)
 end
 
 function calc_posterior_o(p★,i, j) 
-    p★ * ((o(i) +o(j)) / 2) + (1 - p★) * o(i)
+    p★ * ((o(i) +o(j) / 2) + (1 - p★) * o(i))
 end
 
 function update_o!(i,  posterior_o)
@@ -106,31 +103,31 @@ function update_sigma!(i, posterior_sigma)
     nothing
 end
 
-function calcσ★(p★, i,j)
-    σ(i) * (1 - p★/2) + p★ * (1 - p★) * ((o(i) - o(j))/2)^2
+function σtplus1(pstar, i,j)
+    ((σ(i) * (1 - pstar/2) + pstar * (1 - pstar) * (o(i) - o(j)))/2)^2
 end
 
 calcr(sigmastar, oldsigma) = sigmastar/oldsigma
 
-function model_initialize(;n= 200,
-        σ = 2.,
+function model_initiation(;n= 200,
+        σ = 2., 
         interval =  (-5, 5),
         agent_type = Agent_o)
     m = model(n)
     population = createpop(agent_type, n,  σ, interval)
     fillmodel!(m, population)
-    return(m)
+    return(m)   
 end
 
 function pudley_step!(m, p = 0.9 )
-    js = deepcopy(getjstointeract(m))
+    js = getjstointeract(m)
     for i in Abm.nodes(m)
         a = Abm.id2agent(i,m)
         b = js[i]
         p★ = calculatep★(p, a, b)
-        σ★ = calcσ★(p★, a, b)
-        newo = calc_posterior_o(p★,a, b) / calcr(σ★, σ(a))
+        sigmatplus1 = σtplus1(p★, a, b)
+        newo = calc_posterior_o(p★,a, b) / calcr(sigmatplus1, σ(a) )
         update_o!(a, newo)
-        update_sigma!(a, σ★)
+        update_sigma!(a, sigmatplus1)
     end
 end

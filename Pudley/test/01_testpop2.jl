@@ -9,7 +9,7 @@ import Revise
 import Pudley 
 const pdl = Pudley
 using BenchmarkTools
-using DataVoyager#, VegaLite, ElectronDisplay
+using DataVoyager, VegaLite, ElectronDisplay
 using StatsPlots
 using Plots
 import Base.Filesystem
@@ -17,7 +17,7 @@ const filesystem = Base.Filesystem
 gr(legend = false)
 m = pdl.model_initialize()
 
-n = 20_000
+n = 100_000
 
 agent_properties = [:o , :σ]
 
@@ -32,6 +32,16 @@ data = pdl.Abm.step!(m,
               20_000, agent_properties, when = when)     # run the model one step
 
 v = Voyager(data)
+
+plts = ("img" |>
+        filesystem.readdir .|>
+        x -> filesystem.joinpath("./img", x))
+
+function pltfile(plt)
+   data |> load(plt) |> save("$(split(plt, "vegalite")[1])png")
+end
+
+pltfile.(plts)
 
 # data |> @vlplot(
 #     mark={

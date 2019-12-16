@@ -1,0 +1,28 @@
+{
+  "data": {
+    "name": "source"
+  },
+  "mark": "bar",
+  "encoding": {
+    "x": {
+      "field": "step",
+      "type": "nominal",
+      "scale": {
+        "rangeStep": 12
+      }
+    },
+    "y": {
+      "aggregate": "mean",
+      "field": "o",
+      "type": "quantitative"
+    }
+  },
+  "config": {
+    "overlay": {
+      "line": true
+    },
+    "scale": {
+      "useUnaggregatedDomain": true
+    }
+  }
+}

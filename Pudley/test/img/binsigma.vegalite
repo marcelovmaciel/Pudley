@@ -1,0 +1,33 @@
+{
+  "data": {
+    "name": "source"
+  },
+  "mark": "point",
+  "encoding": {
+    "x": {
+      "field": "step",
+      "type": "nominal",
+      "scale": {
+        "rangeStep": 12
+      }
+    },
+    "y": {
+      "bin": {},
+      "field": "σ",
+      "type": "quantitative"
+    },
+    "size": {
+      "aggregate": "count",
+      "field": "*",
+      "type": "quantitative"
+    }
+  },
+  "config": {
+    "overlay": {
+      "line": true
+    },
+    "scale": {
+      "useUnaggregatedDomain": true
+    }
+  }
+}
