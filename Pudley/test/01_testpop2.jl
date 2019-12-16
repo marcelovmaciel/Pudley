@@ -9,9 +9,12 @@ import Revise
 import Pudley 
 const pdl = Pudley
 using BenchmarkTools
-using DataVoyager
-
-
+using DataVoyager#, VegaLite, ElectronDisplay
+using StatsPlots
+using Plots
+import Base.Filesystem
+const filesystem = Base.Filesystem
+gr(legend = false)
 m = pdl.model_initialize()
 
 n = 20_000
@@ -29,3 +32,30 @@ data = pdl.Abm.step!(m,
               20_000, agent_properties, when = when)     # run the model one step
 
 v = Voyager(data)
+
+# data |> @vlplot(
+#     mark={
+#         :line,
+#         point=true
+#     },
+#     x=:step,
+#     y=:o,
+#     color="id:n", legend =
+# )
+
+
+# ax = lineplot(x="step", y="o", hue="id",
+#                    data=data)
+
+
+fig = @df data plot(:step, :o, group = :id, dpi = 200)
+
+if  "img" in filesystem.readdir(".")
+    mkdir("./img")
+end
+
+
+Plots.png("tseries", dpi = 200)
+
+
+
