@@ -11,11 +11,9 @@ const pdl = Pudley
 using BenchmarkTools
 using DataVoyager,
     VegaLite, ElectronDisplay
-using StatsPlots
-using Plots
 import Base.Filesystem
 const filesystem = Base.Filesystem
-gr(legend = false)
+
 m = pdl.model_initialize()
 
 n = 100_000
@@ -61,14 +59,14 @@ pltfile.(plts)
 #                    data=data)
 
 
-fig = @df data plot(:step, :o, group = :id, dpi = 200)
+# fig = @df data plot(:step, :o, group = :id, dpi = 200)
 
-if  "img" in filesystem.readdir(".")
-    mkdir("./img")
-end
+# if  "img" in filesystem.readdir(".")
+#     mkdir("./img")
+# end
 
 
-Plots.png("tseries", dpi = 200)
+# Plots.png("tseries", dpi = 200)
 
 
 
