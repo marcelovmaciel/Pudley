@@ -107,7 +107,7 @@ function update_sigma!(i, posterior_sigma)
 end
 
 function calcσ★(p★, i,j)
-    σ(i) * (1 - p★/2) + p★ * (1 - p★) * ((o(i) - o(j))/2)^2
+    √(σ(i)^2 * (1 - p★/2) + p★ * (1 - p★) * ((o(i) - o(j))/2)^2)
 end
 
 calcr(sigmastar, oldsigma) = sigmastar/oldsigma

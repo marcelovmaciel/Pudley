@@ -14,7 +14,8 @@
     "y": {
       "bin": {},
       "field": "o",
-      "type": "quantitative"
+      "type": "quantitative",
+      "scale": {}
     },
     "size": {
       "aggregate": "count",

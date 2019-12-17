@@ -9,7 +9,8 @@ import Revise
 import Pudley 
 const pdl = Pudley
 using BenchmarkTools
-using DataVoyager, VegaLite, ElectronDisplay
+using DataVoyager,
+    VegaLite, ElectronDisplay
 using StatsPlots
 using Plots
 import Base.Filesystem
@@ -38,7 +39,9 @@ plts = ("img" |>
         x -> filesystem.joinpath("./img", x))
 
 function pltfile(plt)
-   data |> load(plt) |> save("$(split(plt, "vegalite")[1])png")
+    if occursin(".vegalite", plt)
+        data |> load(plt) |> save("$(split(plt, "vegalite")[1])png")
+    end
 end
 
 pltfile.(plts)

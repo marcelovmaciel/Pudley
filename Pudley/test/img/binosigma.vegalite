@@ -12,14 +12,12 @@
       }
     },
     "y": {
-      "bin": {},
-      "field": "σ",
-      "type": "quantitative",
-      "scale": {}
+      "bin": true,
+      "field": "o",
+      "type": "quantitative"
     },
-    "size": {
-      "aggregate": "count",
-      "field": "*",
+    "color": {
+      "field": "σ",
       "type": "quantitative"
     }
   },

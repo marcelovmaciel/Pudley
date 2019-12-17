@@ -2,7 +2,7 @@
   "data": {
     "name": "source"
   },
-  "mark": "point",
+  "mark": "line",
   "encoding": {
     "x": {
       "field": "step",
@@ -12,15 +12,9 @@
       }
     },
     "y": {
-      "bin": {},
       "field": "σ",
       "type": "quantitative",
       "scale": {}
-    },
-    "size": {
-      "aggregate": "count",
-      "field": "*",
-      "type": "quantitative"
     }
   },
   "config": {
