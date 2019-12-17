@@ -2,7 +2,7 @@ module Pudley
 
 import LightGraphs, MetaGraphs, Distributions, DataFrames
 import Parameters, ProgressMeter, JLD2, Random, Statistics, StatsBase
-using PyCall
+
 import Agents
 
 const Abm = Agents
