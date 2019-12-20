@@ -57,6 +57,6 @@ data = step!(model,
 
 
 
-v =Voyager(data)
+v = Voyager(data)
 
 
