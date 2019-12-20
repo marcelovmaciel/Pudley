@@ -17,7 +17,7 @@ myscheduler(m) = keys(m.agents)
 function hk_model(;numagents = 100, ϵ=0.3)
     model = ABM(HKAgent, scheduler=myscheduler , properties = Dict(:ϵ => ϵ))
     for i in 1:numagents
-        add_agent!(model, rand(), rand())
+        add_agent!(model, rand(), 0.0)
     end
     return model
 end
@@ -46,9 +46,9 @@ function model_step!(model)
 end
 
 
-model = hk_model(numagents = 1000, ϵ=0.3)
+model = hk_model(numagents = 1000, ϵ=0.1)
 when = map(i -> floor(Int, i),
-           collect(range(0,step= 10,stop = 1_00)))
+           collect(range(0,step= 10,stop = 100)))
 
 agent_properties = [:new_opinion]
 data = step!(model,
