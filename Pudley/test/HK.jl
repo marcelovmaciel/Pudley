@@ -4,6 +4,7 @@ using Distributions
 using LightGraphs
 using BenchmarkTools
 using Transducers
+using DataVoyager
 
 mutable struct HKAgent{T<:AbstractFloat} <: AbstractAgent
     id::Int
@@ -47,15 +48,15 @@ end
 
 model = hk_model(numagents = 1000, ϵ=0.3)
 when = map(i -> floor(Int, i),
-           collect(range(0,step= 1000,stop = 20_000)))
+           collect(range(0,step= 10,stop = 1_00)))
 
-agent_properties = [:old_opinion]
-@btime  data = step!(model,
+agent_properties = [:new_opinion]
+data = step!(model,
              agent_step!,model_step!,
               1_000, agent_properties, when = when) 
 
 
 
-
+v =Voyager(data)
 
 
