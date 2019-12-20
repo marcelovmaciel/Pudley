@@ -58,4 +58,5 @@ function model_run(; numagents = 100, iterations = 50, ϵ= 0.3)
 end
 
 data = model_run()
-v = Voyager(data)
+
+v = Voyager(data) 
