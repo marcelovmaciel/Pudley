@@ -1,10 +1,30 @@
 import Pkg
 
-Pkg.activate("./Pudley")
+Pkg.activate("../../Pudley")
 Pkg.instantiate()
 Pkg.precompile()
 
+
+
+# # HK (Hegselmann and Krause) opinion dynamics model
+
+# This is an implementation of a simple version of the Hegselman and Krause
+# [Hegselmann and Krause (2002)](http://jasss.soc.surrey.ac.uk/5/3/2.html) model.
+# It is a model of opinion formation with main question: which
+# parameters lead to consensus, polarization or fragmentation?
+
+# It models interacting **groups** of agents (as opposed to interacting pairs, typical in
+# the literature) in which it is assumed that if an agent disagrees too much with
+# the opinion of a source of influence, the source can no longer influence the
+# agent’s opinion. There is then a "bound of confidence". The model shows that the
+# systemic configuration is heavily dependent on this parameter's value.
+
+# The model has the following definition:
+
+
+
 using Agents
+using Distributions
 using DataVoyager
 
 mutable struct HKAgent{T <: AbstractFloat} <: AbstractAgent
@@ -16,7 +36,8 @@ end
 myscheduler(m) = keys(m.agents)
 
 function hk_model(;numagents = 100, ϵ = 0.4)
-    model = ABM(HKAgent, scheduler = myscheduler, properties = Dict(:ϵ => ϵ))
+    model = ABM(HKAgent, scheduler = myscheduler,
+                properties = Dict(:ϵ => ϵ))
     for i in 1:numagents
         o = rand()
         add_agent!(model, o, o)
