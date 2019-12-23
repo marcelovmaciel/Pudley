@@ -1,6 +1,6 @@
 import Pkg
 
-Pkg.activate("../../Pudley")
+Pkg.activate("./Pudley")
 Pkg.instantiate()
 Pkg.precompile()
 
@@ -9,7 +9,7 @@ Pkg.precompile()
 # This is an implementation of a simple version of the Hegselman and Krause
 # [Hegselmann and Krause (2002)](http://jasss.soc.surrey.ac.uk/5/3/2.html) model.
 # It is a model of opinion formation with the question: which
-# parameters lead to consensus, polarization or fragmentation?
+# parameters' values lead to consensus, polarization or fragmentation?
 
 # It models interacting **groups** of agents (as opposed to interacting pairs, typical in
 # the literature) in which it is assumed that if an agent disagrees too much with
@@ -22,14 +22,14 @@ Pkg.precompile()
 # - A set of n Agents with opinions xᵢ in the range [0,1] as attribute; 
 # - A bound ϵ in also in the range [0,1] (actually, the range of interesting results is
 # approximately (0, 0.3]);
-# - The update rule: at each step every agent adopts the mean of the opinions which are not
-# beyond the confidence bound ( |xᵢ - xⱼ| ≤ ϵ);
+# - The update rule: at each step every agent adopts the mean of the opinions which are within
+# the confidence bound ( |xᵢ - xⱼ| ≤ ϵ);
 
 
 # ## Core structures
 # We start by defining the Agent type and initializing the model.
 using Agents
-using Distributions
+using Distributions: mean 
 using DataVoyager
 
 mutable struct HKAgent{T <: AbstractFloat} <: AbstractAgent
@@ -68,7 +68,7 @@ function model_step!(model)
     end
 end
 
-function model_run(; numagents = 100, iterations = 50, ϵ= 0.3)
+function model_run(; numagents = 10, iterations = 50, ϵ= 0.3)
     model = hk_model(numagents = numagents, ϵ = ϵ)
     when = 0:5:iterations
     agent_properties = [:new_opinion]
@@ -83,6 +83,15 @@ function model_run(; numagents = 100, iterations = 50, ϵ= 0.3)
     return(data)
 end
 
-data = model_run()
 
-v = Voyager(data) 
+using Plots
+unicodeplots()
+
+plotsim(data, ϵ) = plot(data[!, :step], data[!, :new_opinion],
+ leg= false, group = data[!, :id], title = "ϵ = $(ϵ)")
+
+plt1,plt2,plt3 = map(e -> (model_run(ϵ= e), e) |> t -> plotsim(t[1], t[2]), [0.01, 0.2, 0.3])
+
+foreach(display, (plt1,plt2,plt3))
+
+
