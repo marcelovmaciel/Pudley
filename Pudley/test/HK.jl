@@ -90,7 +90,8 @@ unicodeplots()
 plotsim(data, ϵ) = plot(data[!, :step], data[!, :new_opinion],
  leg= false, group = data[!, :id], title = "ϵ = $(ϵ)")
 
-plt1,plt2,plt3 = map(e -> (model_run(ϵ= e), e) |> t -> plotsim(t[1], t[2]), [0.01, 0.2, 0.3])
+plt1,plt2,plt3 = map(e -> (model_run(ϵ= e), e) |>
+t -> plotsim(t[1], t[2]), [0.01, 0.2, 0.3])
 
 foreach(display, (plt1,plt2,plt3))
 
