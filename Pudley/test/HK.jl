@@ -38,10 +38,10 @@ mutable struct HKAgent{T <: AbstractFloat} <: AbstractAgent
     new_opinion::T
 end
 
-myscheduler(m) = keys(m.agents)
+
 
 function hk_model(;numagents = 100, ϵ = 0.4)
-    model = ABM(HKAgent, scheduler = myscheduler,
+    model = ABM(HKAgent, scheduler = fastest,
                 properties = Dict(:ϵ => ϵ))
     for i in 1:numagents
         o = rand()

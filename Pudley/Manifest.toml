@@ -7,10 +7,10 @@ uuid = "621f4979-c628-5d54-868e-fcf4e3e8185c"
 version = "0.5.0"
 
 [[Agents]]
-deps = ["DataFrames", "Distributed", "LightGraphs", "Random", "Test"]
-git-tree-sha1 = "23de62109f113a4d87be183cf78ca328f6a25535"
+deps = ["DataFrames", "Distributed", "LightGraphs", "Random", "StatsBase", "Test"]
+git-tree-sha1 = "3b7ddbf43f0bf57f3f05ead829792d36548cd144"
 uuid = "46ada45e-f475-11e8-01d0-f70cc89e6671"
-version = "2.1.0"
+version = "2.2.3"
 
 [[ArgCheck]]
 deps = ["Random"]
