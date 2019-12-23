@@ -87,7 +87,7 @@ end
 # The parameter of interest is the ``:new_opinion` field so we assign
 # it to variable agent_properties and pass it to the `step!` method 
 # to be collected in a DataFrame.
-function model_run(; numagents = 10, iterations = 50, ϵ= 0.3)
+function model_run(; numagents = 100, iterations = 50, ϵ= 0.3)
     model = hk_model(numagents = numagents, ϵ = ϵ)
     when = 0:5:iterations
     agent_properties = [:new_opinion]
@@ -110,9 +110,9 @@ unicodeplots()
 plotsim(data, ϵ) = plot(data[!, :step], data[!, :new_opinion],
  leg= false, group = data[!, :id], title = "ϵ = $(ϵ)")
 
-plt001,plt02,plt03 = map(e -> (model_run(ϵ= e), e) |>
-t -> plotsim(t[1], t[2]), [0.01, 0.2, 0.3])
+plt001,plt015,plt03 = map(e -> (model_run(ϵ= e), e) |>
+t -> plotsim(t[1], t[2]), [0.05, 0.15, 0.3])
 
-foreach(display, (plt001,plt02,plt03))
+foreach(display, (plt001,plt015,plt03))
 
 
