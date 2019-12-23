@@ -57,7 +57,7 @@ function hk_model(;numagents = 100, ϵ = 0.4)
 end
 
 # And some helper functions for the update rule. As there is a filter in the rule we implement it 
-# outside the agent_step! method. Notice that the filter is applied to the  :old_opinion field .
+# outside the `agent_step!` method. Notice that the filter is applied to the  `:old_opinion` field .
 get_old_opinion(agent)::Float64 = agent.old_opinion
 
 function boundfilter(agent,model) 
@@ -65,7 +65,7 @@ function boundfilter(agent,model)
      get_old_opinion.(values(model.agents)))
 end
 
-# Now we implement the agent_step! and model_step! methods. 
+# Now we implement the `agent_step!` and `model_step!` methods. 
 function agent_step!(agent, model)
     agent.new_opinion = mean(boundfilter(agent,model))
 end
@@ -78,14 +78,14 @@ function model_step!(model)
 end
 
 # From this implementation we see that to implement synchronous scheduling 
-# we can define an Agent type with an old and new fields for attributes that 
-# are changed through synchronous updating. In the agent_step! we use the old field
-# and after updating all the agents new field we use the model_step! to update the model
+# we define an Agent type with an `old` and `new` fields for attributes that 
+# are changed through synchronous updating. In the agent_step! we use the `old` field
+# and after updating all the agents `new` field we use the `model_step!`` to update the model
 # for the next iteration.
 
 # Now we can define a method for our simulation run. 
-# The parameter of interest is the :new_opinion field so we assign
-# it to variable agent_properties and pass it to the step! method 
+# The parameter of interest is the ``:new_opinion` field so we assign
+# it to variable agent_properties and pass it to the `step!` method 
 # to be collected in a DataFrame.
 function model_run(; numagents = 10, iterations = 50, ϵ= 0.3)
     model = hk_model(numagents = numagents, ϵ = ϵ)
