@@ -110,7 +110,7 @@ unicodeplots()
 plotsim(data, ϵ) = plot(data[!, :step], data[!, :new_opinion],
  leg= false, group = data[!, :id], title = "ϵ = $(ϵ)")
 
-plt_001,plt02,plt03 = map(e -> (model_run(ϵ= e), e) |>
+plt001,plt02,plt03 = map(e -> (model_run(ϵ= e), e) |>
 t -> plotsim(t[1], t[2]), [0.01, 0.2, 0.3])
 
 foreach(display, (plt001,plt02,plt03))
