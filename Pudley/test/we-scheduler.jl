@@ -139,8 +139,6 @@ function pudley_step!(m, p = 0.9 )
     end
 end
 
-
-
 m = model_initialize()
 
 n = 100_000

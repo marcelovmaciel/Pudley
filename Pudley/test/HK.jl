@@ -4,13 +4,11 @@ Pkg.activate("../../Pudley")
 Pkg.instantiate()
 Pkg.precompile()
 
-
-
 # # HK (Hegselmann and Krause) opinion dynamics model
 
 # This is an implementation of a simple version of the Hegselman and Krause
 # [Hegselmann and Krause (2002)](http://jasss.soc.surrey.ac.uk/5/3/2.html) model.
-# It is a model of opinion formation with main question: which
+# It is a model of opinion formation with the question: which
 # parameters lead to consensus, polarization or fragmentation?
 
 # It models interacting **groups** of agents (as opposed to interacting pairs, typical in
@@ -19,10 +17,17 @@ Pkg.precompile()
 # agent’s opinion. There is then a "bound of confidence". The model shows that the
 # systemic configuration is heavily dependent on this parameter's value.
 
-# The model has the following definition:
+# The model has the following components:
+
+# - A set of n Agents with opinions xᵢ in the range [0,1] as attribute; 
+# - A bound ϵ in also in the range [0,1] (actually, the range of interesting results is
+# approximately (0, 0.3]);
+# - The update rule: at each step every agent adopts the mean of the opinions which are not
+# beyond the confidence bound ( |xᵢ - xⱼ| ≤ ϵ);
 
 
-
+# ## Core structures
+# We start by defining the Agent type and initializing the model.
 using Agents
 using Distributions
 using DataVoyager
