@@ -16,7 +16,7 @@ Pkg.precompile()
 # the opinion of a source of influence, the source can no longer influence the
 # agent’s opinion. There is then a "bound of confidence". The model shows that the
 # systemic configuration is heavily dependent on this parameter's value.
-# We implement it as an example of how to implement a Synchronous update schedule (http://jmckalex.org/compass/syn-and-asynch-expl.html) 
+# We implement it as an example of how to implement a [Synchronous update schedule](http://jmckalex.org/compass/syn-and-asynch-expl.html) .
 # In a Synchronous update schedule changes made to an agent are not seen by 
 # other agents until the next clock tick — that is, 
 # all agents update simultaneously [Wilensky 2015, p.286](https://mitpress.mit.edu/books/introduction-agent-based-modeling)
@@ -56,8 +56,9 @@ function hk_model(;numagents = 100, ϵ = 0.4)
     return model
 end
 
-# And some helper functions for the update rule. As there is a filter in the rule we implement it 
-# outside the `agent_step!` method. Notice that the filter is applied to the  `:old_opinion` field .
+# And some helper functions for the update rule. As there is a filter in
+#the rule we implement it outside the `agent_step!` method. Notice that the filter
+# is applied to the  `:old_opinion` field .
 get_old_opinion(agent)::Float64 = agent.old_opinion
 
 function boundfilter(agent,model) 
@@ -80,8 +81,8 @@ end
 # From this implementation we see that to implement synchronous scheduling 
 # we define an Agent type with an `old` and `new` fields for attributes that 
 # are changed through synchronous updating. In the agent_step! we use the `old` field
-# and after updating all the agents `new` field we use the `model_step!`` to update the model
-# for the next iteration.
+# and after updating all the agents `new` field we use the `model_step!``
+# to update the model  for the next iteration.
 
 # Now we can define a method for our simulation run. 
 # The parameter of interest is the ``:new_opinion` field so we assign
