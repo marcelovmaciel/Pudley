@@ -1,6 +1,6 @@
 import Pkg
 
-Pkg.activate("./Pudley")
+Pkg.activate("../../Pudley")
 Pkg.instantiate()
 Pkg.precompile()
 
@@ -17,14 +17,14 @@ Pkg.precompile()
 # agent’s opinion. There is then a "bound of confidence". The model shows that the
 # systemic configuration is heavily dependent on this parameter's value.
 # We implement it as an example of how to implement a [Synchronous update schedule](http://jmckalex.org/compass/syn-and-asynch-expl.html) .
-# In a Synchronous update schedule changes made to an agent are not seen by 
-# other agents until the next clock tick — that is, 
+# In a Synchronous update schedule changes made to an agent are not seen by
+# other agents until the next clock tick — that is,
 # all agents update simultaneously [Wilensky 2015, p.286](https://mitpress.mit.edu/books/introduction-agent-based-modeling)
 
 
 # The model has the following components:
 
-# - A set of n Agents with opinions xᵢ in the range [0,1] as attribute; 
+# - A set of n Agents with opinions xᵢ in the range [0,1] as attribute;
 # - A bound ϵ in also in the range [0,1] (actually, the range of interesting results is
 # approximately (0, 0.3]);
 # - The update rule: at each step every agent adopts the mean of the opinions which are within
@@ -35,8 +35,9 @@ Pkg.precompile()
 # We start by defining the Agent type and initializing the model.
 # The Agent type has two fields so that we can implement the synchronous update.
 using Agents
-using Distributions: mean 
+using Distributions: mean
 using DataVoyager
+using BenchmarkTools
 
 
 mutable struct HKAgent{T <: AbstractFloat} <: AbstractAgent
@@ -61,32 +62,37 @@ end
 # is applied to the  `:old_opinion` field .
 get_old_opinion(agent)::Float64 = agent.old_opinion
 
-function boundfilter(agent,model) 
+function boundfilter(agent,model)
     filter(j->abs(get_old_opinion(agent) - j) < model.properties[:ϵ],
      get_old_opinion.(values(model.agents)))
 end
 
-# Now we implement the `agent_step!` and `model_step!` methods. 
+# Now we implement the `agent_step!` and `model_step!` methods.
 function agent_step!(agent, model)
     agent.new_opinion = mean(boundfilter(agent,model))
+end
+
+function updateold(a)
+    a.old_opinion = a.new_opinion
+    return a
 end
 
 function model_step!(model)
     for i in keys(model.agents)
         agent = id2agent(i, model)
-        agent.old_opinion = agent.new_opinion
+        updateold(agent)
     end
 end
 
-# From this implementation we see that to implement synchronous scheduling 
-# we define an Agent type with an `old` and `new` fields for attributes that 
+# From this implementation we see that to implement synchronous scheduling
+# we define an Agent type with an `old` and `new` fields for attributes that
 # are changed through synchronous updating. In the agent_step! we use the `old` field
 # and after updating all the agents `new` field we use the `model_step!``
 # to update the model  for the next iteration.
 
-# Now we can define a method for our simulation run. 
+# Now we can define a method for our simulation run.
 # The parameter of interest is the ``:new_opinion` field so we assign
-# it to variable agent_properties and pass it to the `step!` method 
+# it to variable agent_properties and pass it to the `step!` method
 # to be collected in a DataFrame.
 function model_run(; numagents = 100, iterations = 50, ϵ= 0.3)
     model = hk_model(numagents = numagents, ϵ = ϵ)
@@ -94,16 +100,17 @@ function model_run(; numagents = 100, iterations = 50, ϵ= 0.3)
     agent_properties = [:new_opinion]
     data = step!(
             model,
-            agent_step!, 
-            model_step!,
-            iterations, 
+            agent_step!,
+            model_step2!,
+            iterations,
             agent_properties,
             when = when
-            ) 
+            )
     return(data)
 end
 
-
+data = model_run()
+Voyager(data)
 # Finally we run three scenarios, collect the data and plot it.
 using Plots
 unicodeplots()
@@ -116,4 +123,4 @@ t -> plotsim(t[1], t[2]), [0.05, 0.15, 0.3])
 
 foreach(display, (plt001,plt015,plt03))
 
-
+model = hk_model(numagents = 100, ϵ = 0.3)
