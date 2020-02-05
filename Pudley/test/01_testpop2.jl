@@ -1,12 +1,11 @@
 import Pkg
 
-
 Pkg.activate("../../Pudley")
 Pkg.instantiate()
 Pkg.precompile()
 
 import Revise
-import Pudley 
+import Pudley
 const pdl = Pudley
 using BenchmarkTools
 using DataVoyager,
@@ -14,7 +13,7 @@ using DataVoyager,
 import Base.Filesystem
 const filesystem = Base.Filesystem
 
-m = pdl.model_initialize()
+m = pdl.model_initialize(n=2)
 
 n = 100_000
 
@@ -28,10 +27,10 @@ when[1] = 1
 data = pdl.Abm.step!(m,
               pdl.Abm.dummystep,
               pdl.pudley_step!,
-              20_000, agent_properties, when = when)     # run the model one step
+              n, agent_properties, when = when)     # run the model one step
 
 v = Voyager(data)
-
+print(data)
 plts = ("img" |>
         filesystem.readdir .|>
         x -> filesystem.joinpath("./img", x))
@@ -67,6 +66,3 @@ pltfile.(plts)
 
 
 # Plots.png("tseries", dpi = 200)
-
-
-

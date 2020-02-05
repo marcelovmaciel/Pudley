@@ -14,7 +14,7 @@ Pkg.precompile()
 # It models interacting **groups** of agents (as opposed to interacting pairs, typical in
 # the literature) in which it is assumed that if an agent disagrees too much with
 # the opinion of a source of influence, the source can no longer influence the
-# agent’s opinion. There is then a "bound of confidence". The model shows that the
+# agent’s opinion. There i3s then a "bound of confidence". The model shows that the
 # systemic configuration is heavily dependent on this parameter's value.
 # We implement it as an example of how to implement a [Synchronous update schedule](http://jmckalex.org/compass/syn-and-asynch-expl.html) .
 # In a Synchronous update schedule changes made to an agent are not seen by
@@ -101,13 +101,15 @@ function model_run(; numagents = 100, iterations = 50, ϵ= 0.3)
     data = step!(
             model,
             agent_step!,
-            model_step2!,
+            model_step!,
             iterations,
             agent_properties,
             when = when
             )
     return(data)
 end
+
+@btime model_run()
 
 data = model_run()
 Voyager(data)

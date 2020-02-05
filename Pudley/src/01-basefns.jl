@@ -5,10 +5,10 @@ mutable struct Agent_o{
     id::Posfield
     pos::Posfield
     o::Ofield
-    σ::Sigmafield 
+    σ::Sigmafield
 end
 
-Agent_o() = Agent_o(0,0,0., 2.)
+Agent_o() = Agent_o(0,0,BigFloat(0),2.)
 
 space(n::Int, graph) = Abm.Space(graph(n))
 space(n) = space(n, LG.complete_graph)
@@ -24,15 +24,15 @@ function emptypop(agent_type, n::Int)
     Vector{typeof(agent_type())}(undef,n)
 end
 
-function opinionarray(interval, n , 
+function opinionarray(interval, n ,
         distribution = Dist.Uniform)
-    opinions = Vector{Float64}(undef, n)
-   @. opinions = rand(distribution(interval[1], interval[2]))
+    opinions = Vector{BigFloat}(undef, n)
+    @. opinions = BigFloat(rand(distribution(interval[1], interval[2])))
     return(opinions)
 end
 
 function fillpop!(pop,  opinionarray, σ,
-        agent_type = Agent_o)  
+        agent_type = Agent_o)
     poplen = length(pop)
     for i in 1:poplen
         pop[i] = agent_type(i,i,opinionarray[i], σ)
@@ -40,27 +40,27 @@ function fillpop!(pop,  opinionarray, σ,
     return(pop)
 end
 
-    
-function createpop(agent_type,n, σ, interval) 
-    fillpop!(emptypop(agent_type, n), 
+
+function createpop(agent_type,n, σ, interval)
+    fillpop!(emptypop(agent_type, n),
         opinionarray(interval, n),  σ)
 end
 
 # createpop(n) = createpop(Agent_o, 2, (-5, 5),n)
-function fillmodel!(m, population) 
+function fillmodel!(m, population)
     for i in 1:length(population)
         Abm.add_agent!(population[i], i, m)
     end
     return(m)
-end 
+end
 
-function fillmodel!(m, n, σ, interval, agent_type = Agent_o ) 
-    population = createpop(agent_type,n, σ, interval) 
+function fillmodel!(m, n, σ, interval, agent_type = Agent_o )
+    population = createpop(agent_type,n, σ, interval)
     for i in 1:n
         Abm.add_agent!(population[i], i, model)
     end
     return(m)
-end 
+end
 
 function getjtointeract(a, m)
     Abm.id2agent(rand(Abm.node_neighbors(a,m)),m)
@@ -78,13 +78,13 @@ end
 getopinion(a) = a.o
 o(a) = getopinion(a)
 getσ(a) = a.σ
-σ(a)= getσ(a) 
+σ(a)= getσ(a)
 
-function changingterm★(i,j) 
--(o(i) - o(j))^2 / (2 *σ(i)^2) 
+function changingterm★(i,j)
+-(o(i) - o(j))^2 / (2 *σ(i)^2)
 end
 
-function calculatep★(p::AbstractFloat, i, j) 
+function calculatep★(p::AbstractFloat, i, j)
     cterm =  changingterm★(i,j)
     num = p * (1 / (√(2 * π) * σ(i))) * exp(cterm)
     denom = num + (1 - p)
@@ -92,7 +92,7 @@ function calculatep★(p::AbstractFloat, i, j)
     return(pstar)
 end
 
-function calc_posterior_o(p★,i, j) 
+function calc_posterior_o(p★,i, j)
     p★ * ((o(i) +o(j)) / 2) + (1 - p★) * o(i)
 end
 
