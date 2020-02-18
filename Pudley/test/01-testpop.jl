@@ -9,7 +9,7 @@ Pkg.activate("../../Pudley")
 import Pudley #,  Pandas, Seaborn
 const pdl = Pudley
 using BenchmarkTools
-using  Plots
+using Plots
 Plots.gr(legend = false)
 using Curry
 
@@ -34,25 +34,25 @@ using Curry
 # sns.savefig("imgs/plot0.png")
 # plt.figure()
 
-function getstatearray(pop;  simend = 500_000)
+function getstatearray(pop; simend = 500_000)
     result = Array{eltype(pop)}(undef, length(pop), simend)
     result[:, 1] .= deepcopy(pop)
     for i in range(2, stop = simend)
         pdl.uppudleypop!(pop)
         result[:, i] .= deepcopy(pop)
     end
-    return(result)
+    return (result)
 end
 
 
 function animateseries(simresult; interpolation = 5)
-    fig1 = Plots.plot(show = false, xlabel = "iterations",
-                ylabel = "opinions",
-                    dpi = 80)
- anim =  Plots.@animate  for i in 1:size(simresult)[2]
-        Plots.plot!(fig1,
-              partial(map,(pdl.getopinion ∘ pdl.getbelief))(simresult[:,i]),
-        linealpha = 0.2)
+    fig1 = Plots.plot(show = false, xlabel = "iterations", ylabel = "opinions", dpi = 80)
+    anim = Plots.@animate for i = 1:size(simresult)[2]
+        Plots.plot!(
+            fig1,
+            partial(map, (pdl.getopinion ∘ pdl.getbelief))(simresult[:, i]),
+            linealpha = 0.2,
+        )
     end
     #   Plots.png("tseries")
     # Plots.gui(fig1)
@@ -60,32 +60,34 @@ function animateseries(simresult; interpolation = 5)
 end
 
 
-function plotseries(simresult;
-             plotfn = (fig, x) ->  Plots.plot!(fig,
-                                              partial(map,
-                                                      (pdl.getopinion ∘ pdl.getbelief))(x)))
-    fig1 = Plots.plot(show = false, xlabel = "iterations",
-                ylabel = "opinions",
-                    dpi = 200)
-    for i in 1:size(simresult)[1]
+function plotseries(
+    simresult;
+    plotfn = (fig, x) ->
+        Plots.plot!(fig, partial(map, (pdl.getopinion ∘ pdl.getbelief))(x)),
+)
+    fig1 = Plots.plot(show = false, xlabel = "iterations", ylabel = "opinions", dpi = 200)
+    for i = 1:size(simresult)[1]
         plotfn(fig1, simresult[i, :])
     end
     #Plots.png("tseries")
     Plots.gui(fig1)
-    return(fig1)
+    return (fig1)
 end
 
 function plotseries(simresult, ylim)
-    plotseries(simresult,
-               plotfn = (fig, x) ->  Plots.plot!(fig,
-                                                partial(map,
-                                                        (pdl.getopinion ∘ pdl.getbelief))(x),
-                                                ylim = ylim,
-                                                linealpha = 0.2))
-               
+    plotseries(
+        simresult,
+        plotfn = (fig, x) -> Plots.plot!(
+            fig,
+            partial(map, (pdl.getopinion ∘ pdl.getbelief))(x),
+            ylim = ylim,
+            linealpha = 0.2,
+        ),
+    )
+
 end
 
-pop = pdl.createpop(pdl.Agent_o, 2., (-5, 5), 50);
+pop = pdl.createpop(pdl.Agent_o, 2.0, (-5, 5), 50);
 
 # @btime pdl.getjtointeract(pop, pop[1])
 # @code_warntype pdl.getjtointeract(pop, pop[1])
@@ -114,15 +116,21 @@ pop = pdl.createpop(pdl.Agent_o, 2., (-5, 5), 50);
 result = getstatearray(pop);
 
 
-inithist = histogram(partial(map, (pdl.getopinion ∘ pdl.getbelief))(result[:,1]), title = "initial condition")
+inithist = histogram(
+    partial(map, (pdl.getopinion ∘ pdl.getbelief))(result[:, 1]),
+    title = "initial condition",
+)
 Plots.png("inithist")
 
 
-inithist = histogram(partial(map, (pdl.getopinion ∘ pdl.getbelief))(result[:,end]), title = "end condition")
+inithist = histogram(
+    partial(map, (pdl.getopinion ∘ pdl.getbelief))(result[:, end]),
+    title = "end condition",
+)
 Plots.png("endhist")
 
 
-fig1 = plotseries(result, (-200,200))
+fig1 = plotseries(result, (-200, 200))
 
 Plots.png("test1_50")
 
@@ -130,10 +138,8 @@ fig2 = plotseries(result, (-20, 20))
 
 Plots.png("test2_50")
 
-fig3 = plotseries(result, (-5,5))
+fig3 = plotseries(result, (-5, 5))
 
 Plots.png("test3_50")
 
 #plot(fig1, fig2, fig3,  layout = (3,1))
-
-

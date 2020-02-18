@@ -40,17 +40,16 @@ using DataVoyager
 using BenchmarkTools
 
 
-mutable struct HKAgent{T <: AbstractFloat} <: AbstractAgent
+mutable struct HKAgent{T<:AbstractFloat} <: AbstractAgent
     id::Int
     old_opinion::T
     new_opinion::T
 end
 
 
-function hk_model(;numagents = 100, ϵ = 0.4)
-    model = ABM(HKAgent, scheduler = fastest,
-                properties = Dict(:ϵ => ϵ))
-    for i in 1:numagents
+function hk_model(; numagents = 100, ϵ = 0.4)
+    model = ABM(HKAgent, scheduler = fastest, properties = Dict(:ϵ => ϵ))
+    for i = 1:numagents
         o = rand()
         add_agent!(model, o, o)
     end
@@ -62,14 +61,16 @@ end
 # is applied to the  `:old_opinion` field .
 get_old_opinion(agent)::Float64 = agent.old_opinion
 
-function boundfilter(agent,model)
-    filter(j->abs(get_old_opinion(agent) - j) < model.properties[:ϵ],
-     get_old_opinion.(values(model.agents)))
+function boundfilter(agent, model)
+    filter(
+        j -> abs(get_old_opinion(agent) - j) < model.properties[:ϵ],
+        get_old_opinion.(values(model.agents)),
+    )
 end
 
 # Now we implement the `agent_step!` and `model_step!` methods.
 function agent_step!(agent, model)
-    agent.new_opinion = mean(boundfilter(agent,model))
+    agent.new_opinion = mean(boundfilter(agent, model))
 end
 
 function updateold(a)
@@ -94,19 +95,12 @@ end
 # The parameter of interest is the ``:new_opinion` field so we assign
 # it to variable agent_properties and pass it to the `step!` method
 # to be collected in a DataFrame.
-function model_run(; numagents = 100, iterations = 50, ϵ= 0.3)
+function model_run(; numagents = 100, iterations = 50, ϵ = 0.3)
     model = hk_model(numagents = numagents, ϵ = ϵ)
     when = 0:5:iterations
     agent_properties = [:new_opinion]
-    data = step!(
-            model,
-            agent_step!,
-            model_step!,
-            iterations,
-            agent_properties,
-            when = when
-            )
-    return(data)
+    data = step!(model, agent_step!, model_step!, iterations, agent_properties, when = when)
+    return (data)
 end
 
 @btime model_run()
@@ -117,12 +111,17 @@ Voyager(data)
 using Plots
 unicodeplots()
 
-plotsim(data, ϵ) = plot(data[!, :step], data[!, :new_opinion],
- leg= false, group = data[!, :id], title = "ϵ = $(ϵ)")
+plotsim(data, ϵ) = plot(
+    data[!, :step],
+    data[!, :new_opinion],
+    leg = false,
+    group = data[!, :id],
+    title = "ϵ = $(ϵ)",
+)
 
-plt001,plt015,plt03 = map(e -> (model_run(ϵ= e), e) |>
-t -> plotsim(t[1], t[2]), [0.05, 0.15, 0.3])
+plt001, plt015, plt03 =
+    map(e -> (model_run(ϵ = e), e) |> t -> plotsim(t[1], t[2]), [0.05, 0.15, 0.3])
 
-foreach(display, (plt001,plt015,plt03))
+foreach(display, (plt001, plt015, plt03))
 
 model = hk_model(numagents = 100, ϵ = 0.3)
