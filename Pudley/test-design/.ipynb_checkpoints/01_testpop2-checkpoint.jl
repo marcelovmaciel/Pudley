@@ -1,14 +1,9 @@
 import Pkg
-using ClearStacktrace
-using JuliaFormatter
-format(".")
-format("../../Pudley/src")
 
 
 Pkg.activate("../../Pudley")
 Pkg.instantiate()
 Pkg.precompile()
-
 
 import Revise
 import Pudley
@@ -18,25 +13,27 @@ using DataVoyager, VegaLite, ElectronDisplay
 import Base.Filesystem
 const filesystem = Base.Filesystem
 
-m = pdl.model_initialize(n = 2)
+m = pdl.model_initialize()
 
 n = 100_000
 
-agent_properties = [:new_o, :new_σ]
+agent_properties = [:o, :σ]
 
 when = map(i -> floor(Int, i), collect(range(0, step = 1000, stop = n)))
 
-
 when[1] = 1
 
-data =
-    pdl.Abm.step!(m, pdl.agent_step!, pdl.model_step!,
-                  n,
-                  agent_properties,
-                  when = when)     # run the model one step
+data = pdl.Abm.step!(
+    m,
+    pdl.Abm.dummystep,
+    pdl.pudley_step!,
+    20_000,
+    agent_properties,
+    when = when,
+)     # run the model one step
 
 v = Voyager(data)
-print(data)
+
 plts = ("img" |> filesystem.readdir .|> x -> filesystem.joinpath("./img", x))
 
 function pltfile(plt)
