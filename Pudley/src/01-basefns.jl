@@ -6,9 +6,12 @@ mutable struct Agent_o{Posfield<:Int,Ofield<:AbstractFloat,Sigmafield<:AbstractF
     new_o::Ofield
     old_σ::Sigmafield
     new_σ::Sigmafield
+    r::Ofield
 end
 
-Agent_o() = Agent_o(0, 0, BigFloat(0), BigFloat(0), BigFloat(2), BigFloat(2))
+function Agent_o()
+    Agent_o(0, 0, big(0.), big(0.), big(2.), big(2.), big(0.))
+end
 
 
 space(n::Int, graph) = Abm.Space(graph(n))
@@ -18,23 +21,27 @@ function model(agentype, myspace, scheduler)
     Abm.ABM(agentype, myspace, scheduler = scheduler)
 end
 
-myscheduler(m) = Abm.keys(m.agents)
-model(n) = model(Agent_o, space(n), myscheduler)
+#myscheduler(m) = Abm.keys(m.agents)
+#model(n) = model(Agent_o, space(n), myscheduler)
+model(n) = model(Agent_o, space(n), Abm.by_id)
 
 function emptypop(agent_type, n::Int)
-    Vector{typeof(agent_type())}(undef, n)
+    Vector{agent_type}(undef, n)
 end
 
 function opinionarray(interval, n, distribution = Dist.Uniform)
     opinions = Vector{BigFloat}(undef, n)
-    @. opinions = BigFloat(rand(distribution(interval[1], interval[2])))
+    @. opinions = big(rand(distribution(interval[1], interval[2])))
     return (opinions)
 end
 
+
 function fillpop!(pop, opinionarray, σ, agent_type = Agent_o)
     poplen = length(pop)
-    for i = 1:poplen
-        pop[i] = agent_type(i, i, opinionarray[i], opinionarray[i], σ, σ)
+    pop[1] =
+        agent_type(1, 1, big(0.), big(0.), big(1.), big(1.), big(0.))
+    for i = 2:poplen
+        pop[i] = agent_type(i, i, opinionarray[i], opinionarray[i], σ, σ, BigFloat(0))
     end
     return (pop)
 end
@@ -66,7 +73,7 @@ function getjtointeract(a, m = m)
 end
 
 # not okay the type stability here
-function getjstointeract(m)
+function getjstointeract(m)::Vector{Agent_o}
     js = Vector{typeof(Abm.id2agent(1, m))}(undef, Abm.nv(m))
     for i in Abm.nodes(m)
         js[i] = getjtointeract(i, m)
@@ -109,13 +116,12 @@ function calcσ★(p★, i, j)
     √(σ(i)^2 * (1 - p★ / 2) + p★ * (1 - p★) * ((o(i) - o(j)) / 2)^2)
 end
 
-calcr(sigmastar, oldsigma) = sigmastar / oldsigma
-
+#calcr(sigmastar, oldsigma) = sigmastar / oldsigma
 
 function model_initialize(;
     n = 200,
-    σ = BigFloat(2),
-    interval = (-5, 5),
+    σ = big(1.),
+    interval = (-20, 20),
     agent_type = Agent_o,
 )
     m = model(n)
@@ -124,14 +130,27 @@ function model_initialize(;
     return (m)
 end
 
+
+function xr(a, m)
+    central_agent = Abm.id2agent(1, m)
+    xᵣₐ = (o(a) - o(central_agent)) / σ(central_agent)
+end
+
+function xr!(a, m)
+    central_agent = Abm.id2agent(1, m)
+    xᵣₐ = (o(a) - o(central_agent)) / σ(central_agent)
+    a.r = xᵣₐ
+end
+
 function agent_step!(a, m, p = 0.9)
     b = getjtointeract(a, m)
     p★ = calculatep★(p, a, b)
     σ★ = calcσ★(p★, a, b)
-    newo = calc_posterior_o(p★, a, b) / calcr(σ★, σ(a))
+    newo = calc_posterior_o(p★, a, b) #/ calcr(σ★, σ(a))
     update_o!(a, newo)
     update_sigma!(a, σ★)
 end
+
 
 function updateold(a)
     a.old_o = a.new_o
@@ -139,9 +158,11 @@ function updateold(a)
     return a
 end
 
+
 function model_step!(model)
     for i in keys(model.agents)
         agent = Abm.id2agent(i, model)
         updateold(agent)
+        xr!(agent, model)
     end
 end
