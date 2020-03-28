@@ -10,7 +10,7 @@ mutable struct Agent_o{Posfield<:Int,Ofield<:AbstractFloat,Sigmafield<:AbstractF
 end
 
 function Agent_o()
-    Agent_o(0, 0, big(0.), big(0.), big(2.), big(2.), big(0.))
+    Agent_o(0, 0, big(0.0), big(0.0), big(2.0), big(2.0), big(0.0))
 end
 
 
@@ -38,8 +38,7 @@ end
 
 function fillpop!(pop, opinionarray, σ, agent_type = Agent_o)
     poplen = length(pop)
-    pop[1] =
-        agent_type(1, 1, big(0.), big(0.), big(1.), big(1.), big(0.))
+    pop[1] = agent_type(1, 1, big(0.0), big(0.0), big(1.0), big(1.0), big(0.0))
     for i = 2:poplen
         pop[i] = agent_type(i, i, opinionarray[i], opinionarray[i], σ, σ, BigFloat(0))
     end
@@ -120,7 +119,7 @@ end
 
 function model_initialize(;
     n = 200,
-    σ = big(1.),
+    σ = big(1.0),
     interval = (-20, 20),
     agent_type = Agent_o,
 )
