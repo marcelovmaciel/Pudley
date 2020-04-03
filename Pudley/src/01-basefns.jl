@@ -29,18 +29,38 @@ function emptypop(agent_type, n::Int)
     Vector{agent_type}(undef, n)
 end
 
+
 function opinionarray(interval, n, distribution = Dist.Uniform)
     opinions = Vector{BigFloat}(undef, n)
     @. opinions = big(rand(distribution(interval[1], interval[2])))
+
     return (opinions)
 end
+
+geto(a) = a.old_o
+getσ(a) = a.old_σ
+
 
 
 function fillpop!(pop, opinionarray, σ, agent_type = Agent_o)
     poplen = length(pop)
     pop[1] = agent_type(1, 1, big(0.0), big(0.0), big(1.0), big(1.0), big(0.0))
     for i = 2:poplen
-        pop[i] = agent_type(i, i, opinionarray[i], opinionarray[i], σ, σ, BigFloat(0))
+        pop[i] = agent_type(i, i, opinionarray[i], opinionarray[i], σ, σ, big(0.0))
+       # print(getfield(pop[i], :r))
+        setfield!(pop[i], :r,  (geto(pop[i]) - geto(pop[1])) / σ(pop[1]))
+    end
+    return (pop)
+end
+
+
+function fillpop!(pop, opinion::BigFloat, σ, agent_type = Agent_o)
+    poplen = length(pop)
+    pop[1] = agent_type(1, 1, big(0.0), big(0.0), big(1.0), big(1.0), big(0.0))
+    for i = 2:poplen
+        pop[i] = agent_type(i, i, opinion, opinion, σ, σ, big(0.0))
+        setfield!(pop[i], :r,
+                  (geto(pop[i]) - geto(pop[1])) /getσ(pop[1]))
     end
     return (pop)
 end
@@ -48,6 +68,10 @@ end
 
 function createpop(agent_type, n, σ, interval)
     fillpop!(emptypop(agent_type, n), opinionarray(interval, n), σ)
+end
+
+function createpop(agent_type, n, σ, opinion::BigFloat)
+    fillpop!(emptypop(agent_type, n), opinion, σ)
 end
 
 # createpop(n) = createpop(Agent_o, 2, (-5, 5),n)
@@ -80,25 +104,20 @@ function getjstointeract(m)::Vector{Agent_o}
     return (js)
 end
 
-getopinion(a) = a.old_o
-o(a) = getopinion(a)
-getσ(a) = a.old_σ
-σ(a) = getσ(a)
-
 function changingterm★(i, j)
-    -(o(i) - o(j))^2 / (2 * σ(i)^2)
+    -(geto(i) - geto(j))^2 / (2 * getσ(i)^2)
 end
 
 function calculatep★(p::AbstractFloat, i, j)
     cterm = changingterm★(i, j)
-    num = p * (1 / (√(2 * π) * σ(i))) * exp(cterm)
+    num = p * (1 / (√(2 * π) * getσ(i))) * exp(cterm)
     denom = num + (1 - p)
     pstar = num / denom
     return (pstar)
 end
 
 function calc_posterior_o(p★, i, j)
-    p★ * ((o(i) + o(j)) / 2) + (1 - p★) * o(i)
+    p★ * ((geto(i) + geto(j)) / 2) + (1 - p★) * geto(i)
 end
 
 function update_o!(i, posterior_o)
@@ -112,8 +131,21 @@ function update_sigma!(i, posterior_sigma)
 end
 
 function calcσ★(p★, i, j)
-    √(σ(i)^2 * (1 - p★ / 2) + p★ * (1 - p★) * ((o(i) - o(j)) / 2)^2)
+    √(getσ(i)^2 * (1 - p★ / 2) + p★ * (1 - p★) * ((geto(i) - geto(j)) / 2)^2)
 end
+
+function xr(a, m)
+    central_agent = Abm.id2agent(1, m)
+    xᵣₐ = (geto(a) - geto(central_agent)) / getσ(central_agent)
+end
+
+
+function xr!(a, m)
+    central_agent = Abm.id2agent(1, m)
+    xᵣₐ = (geto(a) - geto(central_agent)) / getσ(central_agent)
+    a.r = xᵣₐ
+end
+
 
 #calcr(sigmastar, oldsigma) = sigmastar / oldsigma
 
@@ -129,19 +161,15 @@ function model_initialize(;
     return (m)
 end
 
-
-function xr(a, m)
-    central_agent = Abm.id2agent(1, m)
-    xᵣₐ = (o(a) - o(central_agent)) / σ(central_agent)
+function model_initialize(; n = 200, σ = big(1.0), opinion = big(1.0), agent_type = Agent_o)
+    m = model(n)
+    population = createpop(agent_type, n, σ, opinion)
+    fillmodel!(m, population)
+    return (m)
 end
 
-function xr!(a, m)
-    central_agent = Abm.id2agent(1, m)
-    xᵣₐ = (o(a) - o(central_agent)) / σ(central_agent)
-    a.r = xᵣₐ
-end
 
-function agent_step!(a, m, p = 0.9)
+function agent_step!(a, m, p = 0.3)
     b = getjtointeract(a, m)
     p★ = calculatep★(p, a, b)
     σ★ = calcσ★(p★, a, b)

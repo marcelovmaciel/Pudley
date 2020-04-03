@@ -16,18 +16,19 @@ import Pudley
 const pdl = Pudley
 
 import Base.Filesystem
-const filesystem =  Base.Filesystem
+const filesystem = Base.Filesystem
 using Plots
 
-for iteration  in 1:20
-
+for opinion in big.([1.0, 5., 10.,
+                     -1., -5., -10.,])
     n = 2
-    t = 15_000
+    t = 100
 
-    m = pdl.model_initialize(n = n)
+    m = pdl.model_initialize(n = n, opinion = opinion)
     agent_properties = [:id, :r, :old_σ, :old_o]
-    when = map(i -> floor(Int64, i), collect(range(0, step = 1000, stop = t)))
-    data = pdl.Abm.step!(m, pdl.agent_step!, pdl.model_step!, t, agent_properties, when = when)
+    when = map(i -> floor(Int64, i), collect(range(0, step = 1, stop = t)))
+    data =
+        pdl.Abm.step!(m, pdl.agent_step!, pdl.model_step!, t, agent_properties, when = when)
 
     global data
 
@@ -37,7 +38,7 @@ for iteration  in 1:20
         group = data[!, :id],
         alpha = 0.5,
         line = 4,
-        title = "xr , $n agents, iteration $iteration",
+        title = "xr , $n agents, second agent opinion = $opinion",
         legend = false,
     )
 
@@ -49,7 +50,7 @@ for iteration  in 1:20
         alpha = 0.5,
         line = 4,
         legend = false,
-        title = "sigma, $n agents, iteration $iteration",
+        title = "sigma, $n agents, second agent opinion = $opinion",
     )
 
     p3 = plot(
@@ -59,18 +60,19 @@ for iteration  in 1:20
         alpha = 0.5,
         line = 4,
         legend = false,
-        title = "o, $n agents, iteration $iteration",
+        title = "o, $n agents, second agent opinion = $opinion",
     )
 
 
-    plot(p1,p2,p3, layout = (3,1))
-    savefig("plot-n(2)/plot-n($n)-iteration($iteration).png")
+    plot(p1, p2, p3, layout = (3, 1))
+    savefig("plot-n(2)/plot-n($n)-opinion($opinion).png")
     p1 = nothing
     p2 = nothing
     p3 = nothing
 end
 
-last(data,20)
+last(data, 20)
+first(data, 20)
 
 # using DataVoyager, VegaLite, ElectronDisplay
 # v = Voyager(data)
