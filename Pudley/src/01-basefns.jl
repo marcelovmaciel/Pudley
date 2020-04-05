@@ -47,32 +47,32 @@ function fillpop!(pop, opinionarray, σ, agent_type = Agent_o)
     pop[1] = agent_type(1, 1, big(0.0), big(0.0), big(1.0), big(1.0), big(0.0))
     for i = 2:poplen
         pop[i] = agent_type(i, i, opinionarray[i], opinionarray[i], σ, σ, big(0.0))
-       # print(getfield(pop[i], :r))
-        setfield!(pop[i], :r,  (geto(pop[i]) - geto(pop[1])) / σ(pop[1]))
+        # print(getfield(pop[i], :r))
+        setfield!(pop[i], :r, (geto(pop[i]) - geto(pop[1])) / getσ(pop[1]))
     end
     return (pop)
 end
 
 
-function fillpop!(pop, opinion::BigFloat, σ, agent_type = Agent_o)
-    poplen = length(pop)
-    pop[1] = agent_type(1, 1, big(0.0), big(0.0), big(1.0), big(1.0), big(0.0))
-    for i = 2:poplen
-        pop[i] = agent_type(i, i, opinion, opinion, σ, σ, big(0.0))
-        setfield!(pop[i], :r,
-                  (geto(pop[i]) - geto(pop[1])) /getσ(pop[1]))
-    end
-    return (pop)
-end
+# function fillpop!(pop, opinion::BigFloat, σ, agent_type = Agent_o)
+#     poplen = length(pop)
+#     pop[1] = agent_type(1, 1, big(0.0), big(0.0), big(1.0), big(1.0), big(0.0))
+#     for i = 2:poplen
+#         pop[i] = agent_type(i, i, opinion, opinion, σ, σ, big(0.0))
+#         setfield!(pop[i], :r,
+#                   (geto(pop[i]) - geto(pop[1])) /getσ(pop[1]))
+#     end
+#     return (pop)
+# end
 
 
 function createpop(agent_type, n, σ, interval)
     fillpop!(emptypop(agent_type, n), opinionarray(interval, n), σ)
 end
 
-function createpop(agent_type, n, σ, opinion::BigFloat)
-    fillpop!(emptypop(agent_type, n), opinion, σ)
-end
+# function createpop(agent_type, n, σ, opinion::BigFloat)
+#     fillpop!(emptypop(agent_type, n), opinion, σ)
+# end
 
 # createpop(n) = createpop(Agent_o, 2, (-5, 5),n)
 
@@ -161,12 +161,12 @@ function model_initialize(;
     return (m)
 end
 
-function model_initialize(; n = 200, σ = big(1.0), opinion = big(1.0), agent_type = Agent_o)
-    m = model(n)
-    population = createpop(agent_type, n, σ, opinion)
-    fillmodel!(m, population)
-    return (m)
-end
+# function model_initialize(; n = 200, σ = big(1.0), opinion = big(1.0), agent_type = Agent_o)
+#     m = model(n)
+#     population = createpop(agent_type, n, σ, opinion)
+#     fillmodel!(m, population)
+#     return (m)
+# end
 
 
 function agent_step!(a, m, p = 0.3)
