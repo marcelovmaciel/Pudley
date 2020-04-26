@@ -5,7 +5,6 @@ using JuliaFormatter
 format(".")
 format("../../Pudley/src")
 
-
 Pkg.activate("../../Pudley")
 
 Pkg.instantiate()
@@ -19,8 +18,8 @@ import Base.Filesystem
 const filesystem = Base.Filesystem
 using Plots
 
-
-for n in [5, 10, 20]
+for i in 1:5
+for n in [20]
     t = 500
     interval = (1, 5)
     m = pdl.model_initialize(n = n, interval = interval)
@@ -37,10 +36,18 @@ for n in [5, 10, 20]
         group = data[!, :id],
         alpha = 0.5,
         line = 4,
-        title = "xr , $n agents",
+        title = "xr , $n agents, run $(i)",
         legend = false,
     )
 
+    plot!(data[!, :step],
+          data[!, :r],
+          group = data[!, :id],
+          alpha = 0.5,
+          line = 4,
+          ylims = (-15, 15),
+          legend = false, subplot = 2 ,
+          inset = (1, bbox(0.1, 0.1, 0.55, 0.55, :top, :left)))
 
     p2 = plot(
         data[!, :step],
@@ -64,21 +71,27 @@ for n in [5, 10, 20]
 
 
     plot(p1, p2, p3, layout = (3, 1))
-    savefig("plot-n(2)/plot-n($n).png")
+
+    savefig("plot-n(2)/plot-n($n)-run($i).png")
     p1 = nothing
     p2 = nothing
     p3 = nothing
 end
+end
 
+
+last(data, 20)
+first(data, 20)
+data
+
+when
 
 
 # run replicates
 # gotta dry this
 
 using DataFrames: Not, select!
-using Statistics: mean,median
-
-
+using Statistics: mean, median
 
 
 for n in [5, 10, 20]
@@ -87,12 +100,19 @@ for n in [5, 10, 20]
     m = pdl.model_initialize(n = n, interval = interval)
     agent_properties = [:id, :r, :old_σ, :old_o]
     when = map(i -> floor(Int64, i), collect(range(0, step = 1, stop = t)))
-    data =
-        pdl.Abm.parallel_replicates(m, pdl.agent_step!, pdl.model_step!, t, agent_properties, when= when,replicates = 100, step0 = true)
+    data = pdl.Abm.parallel_replicates(
+        m,
+        pdl.agent_step!,
+        pdl.model_step!,
+        t,
+        agent_properties,
+        when = when,
+        replicates = 100,
+        step0 = true,
+    )
 
 
-
-    data = pdl.Abm.aggregate(data, [:step, :id],  median);
+    data = pdl.Abm.aggregate(data, [:step, :id], median)
     global data
     select!(data, Not(:replicate_median))
 
@@ -146,12 +166,20 @@ for n in [5, 10, 20]
     m = pdl.model_initialize(n = n, interval = interval)
     agent_properties = [:id, :r, :old_σ, :old_o]
     when = map(i -> floor(Int64, i), collect(range(0, step = 1, stop = t)))
-    data =
-        pdl.Abm.parallel_replicates(m, pdl.agent_step!, pdl.model_step!, t, agent_properties, when= when,replicates = 100, step0 = true)
+    data = pdl.Abm.parallel_replicates(
+        m,
+        pdl.agent_step!,
+        pdl.model_step!,
+        t,
+        agent_properties,
+        when = when,
+        replicates = 100,
+        step0 = true,
+    )
 
 
 
-    data = pdl.Abm.aggregate(data, [:step, :id],  mean);
+    data = pdl.Abm.aggregate(data, [:step, :id], mean)
     global data
     select!(data, Not(:replicate_mean))
 
