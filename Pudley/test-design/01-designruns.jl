@@ -8,6 +8,8 @@ format("../../Pudley/src")
 Pkg.activate("../../Pudley")
 
 Pkg.instantiate()
+
+Pkg.resolve()
 Pkg.precompile()
 
 import Revise
@@ -39,139 +41,136 @@ zoomplotbounds(n, p) = map(x -> x / n, getplotminmax(p))
 
 
 for i = 1:10
-    n =20
-        t = 500
-        interval = (1, 5)
-        m = pdl.model_initialize(n = n, interval = interval)
-        agent_properties = [:id, :r, :old_σ, :old_o]
-        when = map(i -> floor(Int64, i), collect(range(0, step = 1, stop = t)))
-        data = pdl.Abm.step!(
-            m,
-            pdl.agent_step!,
-            pdl.model_step!,
-            t,
-            agent_properties,
-            when = when,
-        )
+    n = 20
+    t = 500
+    interval = (1, 5)
+    m = pdl.model_initialize(n = n, interval = interval)
+    agent_properties = [ :r, :old_σ, :old_o]
 
-        p1 = plot(
-            data[!, :step],
-            data[!, :r],
-            group = data[!, :id],
-            alpha = 0.5,
-            line = 4,
-            title = "xr, $n agents, run $(i)",
-            legend = false,
-        )
+    data =
+        pdl.Abm.run!(m, pdl.agent_step!, pdl.model_step!, t,adata =  agent_properties)[1]
+
+    p1 = plot(
+        data[!, :step],
+        data[!, :r],
+        group = data[!, :id],
+        alpha = 0.5,
+        line = 4,
+        title = "xr, $n agents, run $(i)",
+        legend = false,
+    )
 
 
-        p2 = plot(
-            data[!, :step],
-            data[!, :old_σ],
-            group = data[!, :id],
-            alpha = 0.5,
-            line = 4,
-            legend = false,
-            title = "sigma, $n agents",
-        )
+    p2 = plot(
+        data[!, :step],
+        data[!, :old_σ],
+        group = data[!, :id],
+        alpha = 0.5,
+        line = 4,
+        legend = false,
+        title = "sigma, $n agents",
+    )
 
-        p3 = plot(
-            data[!, :step],
-            data[!, :old_o],
-            group = data[!, :id],
-            alpha = 0.5,
-            line = 4,
-            legend = false,
-            title = "o, $n agents",
-        )
+    p3 = plot(
+        data[!, :step],
+        data[!, :old_o],
+        group = data[!, :id],
+        alpha = 0.5,
+        line = 4,
+        legend = false,
+        title = "o, $n agents",
+    )
 
-        p31 = plot(
-            data[!, :step],
-            data[!, :r],
-            group = data[!, :id],
-            alpha = 0.5,
-            line = 4,
-            ylims = zoomplotbounds(
-                zoomplotdenominators[1],
-                p1 ),
-            title = "xr, $n agents, range/$(zoomplotdenominators[1])",
-            legend = false,
-        )
+    p31 = plot(
+        data[!, :step],
+        data[!, :r],
+        group = data[!, :id],
+        alpha = 0.5,
+        line = 4,
+        ylims = zoomplotbounds(zoomplotdenominators[1], p1),
+        title = "xr, $n agents, range/$(zoomplotdenominators[1])",
+        legend = false,
+    )
 
-        p32 = plot(
-            data[!, :step],
-            data[!, :r],
-            group = data[!, :id],
-            alpha = 0.5,
-            line = 4,
-            ylims = zoomplotbounds(
-                zoomplotdenominators[2],
-                p1,
-            ),
-            title = "xr, $n agents, range/$(zoomplotdenominators[2])",
-            legend = false,
-        )
+    p32 = plot(
+        data[!, :step],
+        data[!, :r],
+        group = data[!, :id],
+        alpha = 0.5,
+        line = 4,
+        ylims = zoomplotbounds(zoomplotdenominators[2], p1),
+        title = "xr, $n agents, range/$(zoomplotdenominators[2])",
+        legend = false,
+    )
 
-        p33 = plot(
-            data[!, :step],
-            data[!, :r],
-            group = data[!, :id],
-            alpha = 0.5,
-            line = 4,
-            ylims = zoomplotbounds(
-                zoomplotdenominators[3],
-                p1,
-            ),
-            title = "xr, $n agents, range/$(zoomplotdenominators[3])",
-            legend = false,
-        )
+    p33 = plot(
+        data[!, :step],
+        data[!, :r],
+        group = data[!, :id],
+        alpha = 0.5,
+        line = 4,
+        ylims = zoomplotbounds(zoomplotdenominators[3], p1),
+        title = "xr, $n agents, range/$(zoomplotdenominators[3])",
+        legend = false,
+    )
 
 
-        p311 = plot(
-            data[!, :step],
-            data[!, :r],
-            group = data[!, :id],
-            alpha = 0.5,
-            line = 4,
-            ylims = medianplotbounds(zoomplotdenominators[1], p1),
-            title = "xr, $n agents, range = +-$(zoomplotdenominators[1])*median",
-            legend = false,
-        )
+    p311 = plot(
+        data[!, :step],
+        data[!, :r],
+        group = data[!, :id],
+        alpha = 0.5,
+        line = 4,
+        ylims = medianplotbounds(zoomplotdenominators[1], p1),
+        title = "xr, $n agents, range = +-$(zoomplotdenominators[1])*median",
+        legend = false,
+    )
 
-        p312 = plot(
-            data[!, :step],
-            data[!, :r],
-            group = data[!, :id],
-            alpha = 0.5,
-            line = 4,
-            ylims = medianplotbounds(zoomplotdenominators[2], p1),
-            title = "xr , $n agents, range =  +-$(zoomplotdenominators[2])*median",
-            legend = false,
-        )
+    p312 = plot(
+        data[!, :step],
+        data[!, :r],
+        group = data[!, :id],
+        alpha = 0.5,
+        line = 4,
+        ylims = medianplotbounds(zoomplotdenominators[2], p1),
+        title = "xr , $n agents, range =  +-$(zoomplotdenominators[2])*median",
+        legend = false,
+    )
 
-        p313 = plot(
-            data[!, :step],
-            data[!, :r],
-            group = data[!, :id],
-            alpha = 0.5,
-            line = 4,
-            ylims = medianplotbounds(zoomplotdenominators[3], p1),
-            title = "xr, $n agents, range =  +-$(zoomplotdenominators[3])*median",
-            legend = false,
-        )
+    p313 = plot(
+        data[!, :step],
+        data[!, :r],
+        group = data[!, :id],
+        alpha = 0.5,
+        line = 4,
+        ylims = medianplotbounds(zoomplotdenominators[3], p1),
+        title = "xr, $n agents, range =  +-$(zoomplotdenominators[3])*median",
+        legend = false,
+    )
 
 
-    plot(p1, p31, p311, p2, p32, p312, p3, p33, p313,
-         layout = (3, 3), dpi =200,
-         titlefont=Plots.font("sans-serif", pointsize=round(5.0)))
+    plot(
+        p1,
+        p31,
+        p311,
+        p2,
+        p32,
+        p312,
+        p3,
+        p33,
+        p313,
+        layout = (3, 3),
+        dpi = 200,
+        titlefont = Plots.font("sans-serif", pointsize = round(5.0)),
+    )
 
-        savefig("plot-n(2)/plot-n($n)-run($i).png")
-        p1 = nothing
-        p2 = nothing
-        p3 = nothing
-        p31, p32, p33 = nothing, nothing, nothing
-        p311, p312, p313 = nothing, nothing, nothing
-    end
+    savefig("plot-n(2)/plot-n($n)-run($i).png")
+    p1 = nothing
+    p2 = nothing
+    p3 = nothing
+    p31, p32, p33 = nothing, nothing, nothing
+    p311, p312, p313 = nothing, nothing, nothing
+end
 
 
 

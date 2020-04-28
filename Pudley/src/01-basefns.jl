@@ -14,7 +14,7 @@ function Agent_o()
 end
 
 
-space(n::Int, graph) = Abm.Space(graph(n))
+space(n::Int, graph) = Abm.GraphSpace(graph(n))
 space(n) = space(n, LG.complete_graph)
 
 function model(agentype, myspace, scheduler)
@@ -23,7 +23,7 @@ end
 
 #myscheduler(m) = Abm.keys(m.agents)
 #model(n) = model(Agent_o, space(n), myscheduler)
-model(n) = model(Agent_o, space(n), Abm.by_id)
+model(n) = model(typeof(Agent_o()), space(n), Abm.by_id)
 
 function emptypop(agent_type, n::Int)
     Vector{agent_type}(undef, n)
@@ -42,7 +42,7 @@ getσ(a) = a.old_σ
 
 
 
-function fillpop!(pop, opinionarray, σ, agent_type = Agent_o)
+function fillpop!(pop, opinionarray, σ, agent_type = typeof(Agent_o()))
     poplen = length(pop)
     pop[1] = agent_type(1, 1, big(0.0), big(0.0), big(1.0), big(1.0), big(0.0))
     for i = 2:poplen
@@ -92,12 +92,12 @@ function fillmodel!(m, n, σ, interval, agent_type = Agent_o)
 end
 
 function getjtointeract(a, m = m)
-    Abm.id2agent(rand(Abm.node_neighbors(a, m)), m)
+    m[rand(Abm.node_neighbors(a, m))]
 end
 
 # not okay the type stability here
 function getjstointeract(m)::Vector{Agent_o}
-    js = Vector{typeof(Abm.id2agent(1, m))}(undef, Abm.nv(m))
+    js = Vector{typeof(m[1])}(undef, Abm.nv(m))
     for i in Abm.nodes(m)
         js[i] = getjtointeract(i, m)
     end
@@ -135,13 +135,13 @@ function calcσ★(p★, i, j)
 end
 
 function xr(a, m)
-    central_agent = Abm.id2agent(1, m)
+    central_agent = m[1]
     xᵣₐ = (geto(a) - geto(central_agent)) / getσ(central_agent)
 end
 
 
 function xr!(a, m)
-    central_agent = Abm.id2agent(1, m)
+    central_agent = m[1]
     xᵣₐ = (geto(a) - geto(central_agent)) / getσ(central_agent)
     a.r = xᵣₐ
 end
@@ -188,7 +188,7 @@ end
 
 function model_step!(model)
     for i in keys(model.agents)
-        agent = Abm.id2agent(i, model)
+        agent = model[i]
         updateold(agent)
         xr!(agent, model)
     end
