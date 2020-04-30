@@ -1,7 +1,7 @@
 module Pudley
 
 import LightGraphs, MetaGraphs, Distributions, DataFrames
-import Parameters, ProgressMeter, JLD2, Random, Statistics, StatsBase
+import Parameters, ProgressMeter, JLD2, Random, Statistics, StatsBase, Plots
 
 import Agents
 
@@ -16,7 +16,7 @@ const RD = Random
 const Stats = Statistics
 # package code goes here
 include("01-basefns.jl")
-    #include("02_runfns.jl")
-    #include("03_analysisHelpers.jl")
+include("02-analysis_helpers.jl")
+
 
 end # module
