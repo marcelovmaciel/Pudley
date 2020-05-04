@@ -89,7 +89,7 @@ function threecol_iterplot(data, repetition)
 
     if !in("imgs", readdir("."))
         mkdir("./imgs")
-        print("recursing here! I may be guilty of any problem")
+        print("recursing here! I may be the source of any problem")
         threecol_iterplot(data, repetition)
     else
         p1 = timeplot(data, :r, "xr, $n agents, run $(repetition)")

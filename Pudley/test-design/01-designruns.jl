@@ -6,7 +6,6 @@ format(".")
 format("../../Pudley/src")
 
 Pkg.activate("../../Pudley")
-
 Pkg.instantiate()
 Pkg.resolve()
 Pkg.precompile()
@@ -17,7 +16,7 @@ const pdl = Pudley
 
 
 n = 100
-t = 500
+t = 5000
 interval = (-10, 10)
 agent_properties = [:r, :old_σ, :old_o]
 
