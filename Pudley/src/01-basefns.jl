@@ -42,14 +42,28 @@ getσ(a) = a.old_σ
 
 
 
-function fillpop!(pop, opinionarray, σ, agent_type = typeof(Agent_o()))
+function fillpop!(pop, opinionarray, σ, probeo, agent_type = typeof(Agent_o()))
+    # special agents constants
+    centralagentpos = 1
+    probeagentpos = 2
+
     poplen = length(pop)
-    pop[1] = agent_type(1, 1, big(0.0), big(0.0), big(1.0), big(1.0), big(0.0))
-    for i = 2:poplen
+
+    # special agents initialization
+    pop[centralagentpos] = agent_type(centralagentpos, centralagentpos, big(0.0), big(0.0), big(1.0), big(1.0), big(0.0))
+    pop[probeagentpos] = agent_type(probeagentpos, probeagentpos, big(probeo), big(probeo), big(1.0), big(1.0), big(0.0))
+
+    # normal agents initialization
+    for i = probeagentpos+1:poplen
         pop[i] = agent_type(i, i, opinionarray[i], opinionarray[i], σ, σ, big(0.0))
-        # print(getfield(pop[i], :r))
+
+    end
+
+    # agents actual r initialization
+    for i = centralagentpos+1:poplen
         setfield!(pop[i], :r, (geto(pop[i]) - geto(pop[1])) / getσ(pop[1]))
     end
+
     return (pop)
 end
 
@@ -66,8 +80,8 @@ end
 # end
 
 
-function createpop(agent_type, n, σ, interval)
-    fillpop!(emptypop(agent_type, n), opinionarray(interval, n), σ)
+function createpop(agent_type, n, σ, interval, probeo)
+    fillpop!(emptypop(agent_type, n), opinionarray(interval, n), σ, probeo)
 end
 
 # function createpop(agent_type, n, σ, opinion::BigFloat)
@@ -153,10 +167,10 @@ function model_initialize(;
     n = 200,
     σ = big(1.0),
     interval = (-20, 20),
-    agent_type = Agent_o,
+    agent_type = Agent_o, probeo= 0.25
 )
     m = model(n)
-    population = createpop(agent_type, n, σ, interval)
+    population = createpop(agent_type, n, σ, interval, probeo)
     fillmodel!(m, population)
     return (m)
 end
