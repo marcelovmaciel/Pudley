@@ -164,13 +164,13 @@ end
 #calcr(sigmastar, oldsigma) = sigmastar / oldsigma
 
 function model_initialize(;
-    n = 200,
+    nagents = 200,
     σ = big(1.0),
     interval = (-20, 20),
     agent_type = Agent_o, probeo= 0.25
 )
-    m = model(n)
-    population = createpop(agent_type, n, σ, interval, probeo)
+    m = model(nagents)
+    population = createpop(agent_type, nagents, σ, interval, probeo)
     fillmodel!(m, population)
     return (m)
 end
