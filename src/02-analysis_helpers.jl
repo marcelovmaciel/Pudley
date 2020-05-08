@@ -34,6 +34,7 @@ function medianplotbounds(n, p)
     (-(n * plotmedian), n * plotmedian)
 end
 
+
 """
     function zoomplotbounds(n, p)
         Returns plot (max,min) bounds / n
