@@ -51,9 +51,9 @@ function timeplot(data, yvar, title)
         data[!, yvar],
         group = data[!, :id],
         alpha = 0.5,
-        line = 1,
+        line = 4,
         title = title,
-        legend = false,
+        legend = true,
     )
 end
 

@@ -1,0 +1,13 @@
+#+title: Pudley todos
+
+* TODO Fix script/01 naming scheme
+- 02 has a proper naming helper
+* TODO Unsatisfied with naming scheme and parameter saving in general...
+- Think about
+* TODO unsatisfied with my scripts lack of prose
+- Think about that
+- Org is not runnable (right now) and I want to develop on a script but be able to read my explanation later
+- With that in mind there is a pkg for that, from scripts to notebooks. The notebooks should be generated on the appropriate folder!!!!
+* TODO properly curry quickprobing
+* TODO  the saving scheme in scripts/02-designplots is wrong
+* TODO  add conversations to notes

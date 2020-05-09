@@ -40,13 +40,11 @@ end
 geto(a) = a.old_o
 getσ(a) = a.old_σ
 
+const centralagentpos = 1
+const probeagentpos = 2
 
-
-function fillpop!(pop, opinionarray, σ, probeo, agent_type = typeof(Agent_o()))
+function fillpop!(pop, opinionarray, σ, probeo, agent_type = typeof(Agent_o()), centralagentpos = centralagentpos, probeagentpos = probeagentpos)
     # special agents constants
-    centralagentpos = 1
-    probeagentpos = 2
-
     poplen = length(pop)
 
     # special agents initialization
