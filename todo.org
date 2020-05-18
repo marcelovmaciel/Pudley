@@ -11,3 +11,5 @@
 * TODO properly curry quickprobing
 * TODO  the saving scheme in scripts/02-designplots is wrong
 * TODO  add conversations to notes
+* TODO [#A] Implement the following for andre
+- Primeira coisa, não plote até estourar. Pare antes para a gente ver o comportamento inicial. Se estiver convergindo normalmente depois explode, é muito provável que seja precisão. Afinal o sigma está mesmo indo a zero. Para isso, esqueça a explosão final e vamos olhar o começo, só. E com zoom suficiente para a gente ver mais que só uma explosão.
