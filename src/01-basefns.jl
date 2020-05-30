@@ -17,13 +17,13 @@ end
 space(n::Int, graph) = Abm.GraphSpace(graph(n))
 space(n) = space(n, LG.complete_graph)
 
-function model(agentype, myspace, scheduler)
-    Abm.ABM(agentype, myspace, scheduler = scheduler)
+function model(agentype, myspace, scheduler, p = 0.3)
+    Abm.ABM(agentype, myspace, scheduler = scheduler, properties = Dict(:p => p  ))
 end
 
 #myscheduler(m) = Abm.keys(m.agents)
 #model(n) = model(Agent_o, space(n), myscheduler)
-model(n) = model(typeof(Agent_o()), space(n), Abm.by_id)
+model(n, p) = model(typeof(Agent_o()), space(n), Abm.by_id, p)
 
 function emptypop(agent_type, n::Int)
     Vector{agent_type}(undef, n)
@@ -158,16 +158,16 @@ function xr!(a, m)
     a.r = xᵣₐ
 end
 
-
 #calcr(sigmastar, oldsigma) = sigmastar / oldsigma
 
 function model_initialize(;
-    nagents = 200,
-    σ = big(1.0),
-    interval = (-20, 20),
-    agent_type = Agent_o, probeo= 0.25
-)
-    m = model(nagents)
+                          nagents = 200,
+                          σ = big(1.0),
+                          interval = (-20, 20),
+                          agent_type = Agent_o,
+                          probeo= 0.25,
+                          p = 0.3)
+    m = model(nagents, p)
     population = createpop(agent_type, nagents, σ, interval, probeo)
     fillmodel!(m, population)
     return (m)
@@ -181,7 +181,8 @@ end
 # end
 
 
-function agent_step!(a, m, p = 0.3)
+function agent_step!(a, m)
+    p = m.p
     b = getjtointeract(a, m)
     p★ = calculatep★(p, a, b)
     σ★ = calcσ★(p★, a, b)
