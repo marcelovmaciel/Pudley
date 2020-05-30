@@ -22,7 +22,10 @@ paramsroot = datadir("parameters", "testprobe")
 `paramsroot` to determine which data I want. Once I've decided I set it as a
 variable. =#
 
-# readdir(paramsroot)
+readdir(paramsroot)
+
+
+
 paramsname = readdir(paramsroot)[1]
 
 #=
@@ -74,8 +77,10 @@ mean_centralprobe = combine(
     [:r, :old_σ, :old_o] .=> pdl.Stats.mean,
 )
 
-# get data until the 500 step 
-until500data = filter(x -> x.step <= 500, mean_centralprobe)
+# get data until a certain step
+untilstep(step, data = mean_centralprobe) = filter(x -> x.step <= step, data)
+until500data = untilstep(500)
+until750data = untilstep(750)
 
 # this is to get the data from a single parametrization for a single agent (for
 # animations)
@@ -86,15 +91,15 @@ filteredid_df = filter(x -> x.probeo == 0.0 && x.id == 2, mean_centralprobe)
 ||Plotting the data||
 ----------------------------------------------------------------------------------------------------------------------------------
 =#
-colstoplot = (filter(x -> occursin("mean", x), names(until500data)))
+colstoplot = (filter(x -> occursin("mean", x), names(until750data)))
 
-function quickprobing(var, probevalue, data= until500data)
+function quickprobing(var, probevalue, data= until750data)
 
     probetitle(var, probevalue) =
         join([string(var), "for", "initial probeo=$(probevalue)"], " ")
     
     datatoplot = filter(x -> x.probeo == probevalue, data)
-    titletoplot = probetitle(var, probevalue),
+    titletoplot = probetitle(var, probevalue)
 
     qplot = pdl.timeplot(datatoplot,
                          var,titletoplot)
@@ -106,15 +111,16 @@ quickprobing_σ(probevalue) = quickprobing(:old_σ_mean, probevalue)
 quickprobing_o(probevalue) = quickprobing(:old_o_mean, probevalue)
 
 
-# for pr in params[:probeo]
-#     pdl.Plots.plot(
-#         [quickprobing_r(pr), quickprobing_o(pr), quickprobing_σ(pr)]...,
-#         layout = (1, 3),
-#         titlefont = pdl.Plots.font("sans-serif", pointsize = round(7.0)),
-#         dpi = 200,
-#     )
-#     pdl.Plots.savefig(joinpath(plotsdir(), "probevalue$(pr).png"))
-# end
+for pr in params[:probeo]
+    pdl.Plots.plot(
+        [quickprobing_r(pr), quickprobing_o(pr), quickprobing_σ(pr)]...,
+        layout = (1, 3),
+        titlefont = pdl.Plots.font("sans-serif", pointsize = round(7.0)),
+        dpi = 200,
+    )
+    pdl.Plots.savefig(joinpath(plotsdir(), "probevalue$(pr).png"))
+end
+
 
 @async run(`nautilus ../plots`)
 
