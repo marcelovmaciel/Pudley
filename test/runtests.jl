@@ -19,8 +19,15 @@ using Test
 n = 2
 interval = (-20,20)
 
+let agent = pdl.Agent_o()
+    for i in fieldnames(typeof(agent))
+        @assert getfield(pdl.unitparams, i)  == getfield(agent, i)
+            end
+end
+
 
 @inferred pdl.Agent_o()
+
 @inferred pdl.space(n)
 #@code_warntype pdl.model(n)
 @inferred pdl.model(n)

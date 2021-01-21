@@ -9,16 +9,23 @@ mutable struct Agent_o{Posfield<:Int,Ofield<:AbstractFloat,Sigmafield<:AbstractF
     r::Ofield
 end
 
-function Agent_o()
-    Agent_o(0, 0, big(0.0), big(0.0), big(2.0), big(2.0), big(0.0))
-end
 
+#the params of an empty agent
+#(maybe use Parameters here, it would indeed simplify things)
+const unitparams = NamedTuple{(:id, :pos, :old_o, :new_o, :old_σ, :new_σ,
+                             :r)}((0, 0, big(0.0), big(0.0), big(2.0), big(2.0),
+                                   big(0.0)))
+
+function Agent_o()
+    Agent_o(unitparams...)
+end
 
 space(n::Int, graph) = Abm.GraphSpace(graph(n))
 space(n) = space(n, LG.complete_graph)
 
 function model(agentype, myspace, scheduler, p = 0.3)
-    Abm.ABM(agentype, myspace, scheduler = scheduler, properties = Dict(:p => p  ))
+    Abm.ABM(agentype, myspace, scheduler = scheduler, properties = Dict(:p => p
+    ))
 end
 
 #myscheduler(m) = Abm.keys(m.agents)
@@ -29,37 +36,48 @@ function emptypop(agent_type, n::Int)
     Vector{agent_type}(undef, n)
 end
 
-
 function opinionarray(interval, n, distribution = Dist.Uniform)
     opinions = Vector{BigFloat}(undef, n)
     @. opinions = big(rand(distribution(interval[1], interval[2])))
-
     return (opinions)
 end
 
-geto(a) = a.old_o
-getσ(a) = a.old_σ
+o(a::Agent_o) = a.old_o
+σ(a::Agent_o) = a.old_σ
 
 const centralagentpos = 1
 const probeagentpos = 2
 
-function fillpop!(pop, opinionarray, σ, probeo, agent_type = typeof(Agent_o()), centralagentpos = centralagentpos, probeagentpos = probeagentpos)
+
+function fillpop!(pop, opinionarray, σ, probeo, agent_type = typeof(Agent_o()),
+centralagentpos = centralagentpos, probeagentpos = probeagentpos)
     # special agents constants
     poplen = length(pop)
 
+    centralagent_fieldvalues = NamedTuple{(:id, :pos, :old_o, :new_o, :old_σ,
+                                            :new_σ, :r)}((centralagentpos,
+                                            centralagentpos, big(0.0), big(0.0),
+                                            big(1.0), big(1.0), big(0.0)))
+
+    probeagent_fieldvalues = NamedTuple{(:id, :pos, :old_o, :new_o, :old_σ,
+                                     :new_σ, :r)}((probeagentpos, probeagentpos,
+                                     big(probeo), big(probeo), big(1.0),
+                                     big(1.0), big(0.0)))
+
     # special agents initialization
-    pop[centralagentpos] = agent_type(centralagentpos, centralagentpos, big(0.0), big(0.0), big(1.0), big(1.0), big(0.0))
-    pop[probeagentpos] = agent_type(probeagentpos, probeagentpos, big(probeo), big(probeo), big(1.0), big(1.0), big(0.0))
+    pop[centralagentpos] = agent_type(centralagent_fieldvalues...)
+    pop[probeagentpos] = agent_type(probeagent_fieldvalues...)
 
     # normal agents initialization
     for i = probeagentpos+1:poplen
-        pop[i] = agent_type(i, i, opinionarray[i], opinionarray[i], σ, σ, big(0.0))
+        pop[i] = agent_type(i, i, opinionarray[i], opinionarray[i], σ, σ,
+        big(0.0))
 
     end
 
     # agents actual r initialization
     for i = centralagentpos+1:poplen
-        setfield!(pop[i], :r, (geto(pop[i]) - geto(pop[1])) / getσ(pop[1]))
+        setfield!(pop[i], :r, (o(pop[i]) - o(pop[1])) / σ(pop[1]))
     end
 
     return (pop)
@@ -95,13 +113,13 @@ function fillmodel!(m, population)
     return (m)
 end
 
-function fillmodel!(m, n, σ, interval, agent_type = Agent_o)
-    population = createpop(agent_type, n, σ, interval)
-    for i = 1:n
-        Abm.add_agent!(population[i], i, model)
-    end
-    return (m)
-end
+# function fillmodel!(m, n, σ, interval, agent_type = Agent_o)
+#     population = createpop(agent_type, n, σ, interval)
+#     for i = 1:n
+#         Abm.add_agent!(population[i], i, model)
+#     end
+#     return (m)
+# end
 
 function getjtointeract(a, m = m)
     m[rand(Abm.node_neighbors(a, m))]
@@ -117,19 +135,19 @@ function getjstointeract(m)::Vector{Agent_o}
 end
 
 function changingterm★(i, j)
-    -(geto(i) - geto(j))^2 / (2 * getσ(i)^2)
+    -(o(i) - o(j))^2 / (2 * σ(i)^2)
 end
 
 function calculatep★(p::AbstractFloat, i, j)
     cterm = changingterm★(i, j)
-    num = p * (1 / (√(2 * π) * getσ(i))) * exp(cterm)
+    num = p * (1 / (√(2 * π) * σ(i))) * exp(cterm)
     denom = num + (1 - p)
     pstar = num / denom
     return (pstar)
 end
 
 function calc_posterior_o(p★, i, j)
-    p★ * ((geto(i) + geto(j)) / 2) + (1 - p★) * geto(i)
+    p★ * ((o(i) + o(j)) / 2) + (1 - p★) * o(i)
 end
 
 function update_o!(i, posterior_o)
@@ -143,18 +161,17 @@ function update_sigma!(i, posterior_sigma)
 end
 
 function calcσ★(p★, i, j)
-    √(getσ(i)^2 * (1 - p★ / 2) + p★ * (1 - p★) * ((geto(i) - geto(j)) / 2)^2)
+    √(σ(i)^2 * (1 - p★ / 2) + p★ * (1 - p★) * ((o(i) - o(j)) / 2)^2)
 end
 
 function xr(a, m)
     central_agent = m[1]
-    xᵣₐ = (geto(a) - geto(central_agent)) / getσ(central_agent)
+    xᵣₐ = (o(a) - o(central_agent)) / σ(central_agent)
 end
-
 
 function xr!(a, m)
     central_agent = m[1]
-    xᵣₐ = (geto(a) - geto(central_agent)) / getσ(central_agent)
+    xᵣₐ = (o(a) - o(central_agent)) / σ(central_agent)
     a.r = xᵣₐ
 end
 
@@ -179,7 +196,6 @@ end
 #     fillmodel!(m, population)
 #     return (m)
 # end
-
 
 function agent_step!(a, m)
     p = m.p
