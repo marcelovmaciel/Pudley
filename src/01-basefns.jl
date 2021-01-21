@@ -1,5 +1,6 @@
-mutable struct Agent_o{Posfield<:Int,Ofield<:AbstractFloat,Sigmafield<:AbstractFloat} <:
-               Abm.AbstractAgent
+mutable struct Agent_o{Posfield<:Int,
+                       Ofield<:AbstractFloat,
+                       Sigmafield<:AbstractFloat} <:Abm.AbstractAgent
     id::Posfield
     pos::Posfield
     old_o::Ofield
@@ -12,9 +13,9 @@ end
 
 #the params of an empty agent
 #(maybe use Parameters here, it would indeed simplify things)
-const unitparams = NamedTuple{(:id, :pos, :old_o, :new_o, :old_σ, :new_σ,
-                             :r)}((0, 0, big(0.0), big(0.0), big(2.0), big(2.0),
-                                   big(0.0)))
+const unitparams = NamedTuple{(:id, :pos, :old_o, :new_o,
+                               :old_σ, :new_σ,:r)}((0, 0, big(0.0), big(0.0),
+                                                    big(2.0), big(2.0),big(0.0)))
 
 function Agent_o()
     Agent_o(unitparams...)
@@ -24,8 +25,8 @@ space(n::Int, graph) = Abm.GraphSpace(graph(n))
 space(n) = space(n, LG.complete_graph)
 
 function model(agentype, myspace, scheduler, p = 0.3)
-    Abm.ABM(agentype, myspace, scheduler = scheduler, properties = Dict(:p => p
-    ))
+    Abm.ABM(agentype, myspace, scheduler = scheduler,
+            properties = Dict(:p => p))
 end
 
 #myscheduler(m) = Abm.keys(m.agents)
@@ -49,20 +50,26 @@ const centralagentpos = 1
 const probeagentpos = 2
 
 
-function fillpop!(pop, opinionarray, σ, probeo, agent_type = typeof(Agent_o()),
-centralagentpos = centralagentpos, probeagentpos = probeagentpos)
+function fillpop!(pop, opinionarray, σ, probeo,
+                  agent_type = typeof(Agent_o()),
+                  centralagentpos = centralagentpos,
+                  probeagentpos = probeagentpos)
     # special agents constants
     poplen = length(pop)
 
-    centralagent_fieldvalues = NamedTuple{(:id, :pos, :old_o, :new_o, :old_σ,
-                                            :new_σ, :r)}((centralagentpos,
-                                            centralagentpos, big(0.0), big(0.0),
-                                            big(1.0), big(1.0), big(0.0)))
+    centralagent_fieldvalues = NamedTuple{(:id, :pos, :old_o,
+                                           :new_o, :old_σ,
+                                           :new_σ, :r)}((centralagentpos,
+                                                         centralagentpos,
+                                                         big(0.0), big(0.0),
+                                                         big(1.0), big(1.0),
+                                                         big(0.0)))
 
-    probeagent_fieldvalues = NamedTuple{(:id, :pos, :old_o, :new_o, :old_σ,
-                                     :new_σ, :r)}((probeagentpos, probeagentpos,
-                                     big(probeo), big(probeo), big(1.0),
-                                     big(1.0), big(0.0)))
+    probeagent_fieldvalues = NamedTuple{(:id, :pos, :old_o,
+                                         :new_o, :old_σ,:new_σ,
+                                         :r)}((probeagentpos, probeagentpos,
+                                               big(probeo), big(probeo), big(1.0),
+                                               big(1.0), big(0.0)))
 
     # special agents initialization
     pop[centralagentpos] = agent_type(centralagent_fieldvalues...)
@@ -83,7 +90,6 @@ centralagentpos = centralagentpos, probeagentpos = probeagentpos)
     return (pop)
 end
 
-
 # function fillpop!(pop, opinion::BigFloat, σ, agent_type = Agent_o)
 #     poplen = length(pop)
 #     pop[1] = agent_type(1, 1, big(0.0), big(0.0), big(1.0), big(1.0), big(0.0))
@@ -94,7 +100,6 @@ end
 #     end
 #     return (pop)
 # end
-
 
 function createpop(agent_type, n, σ, interval, probeo)
     fillpop!(emptypop(agent_type, n), opinionarray(interval, n), σ, probeo)
@@ -134,13 +139,14 @@ function getjstointeract(m)::Vector{Agent_o}
     return (js)
 end
 
+
 function changingterm★(i, j)
-    -(o(i) - o(j))^2 / (2 * σ(i)^2)
+    -(o(i) - o(j))^2 / (2 * σ(i)^2) # * Possible source of instability here
 end
 
 function calculatep★(p::AbstractFloat, i, j)
     cterm = changingterm★(i, j)
-    num = p * (1 / (√(2 * π) * σ(i))) * exp(cterm)
+    num = p * (1 / (√(2 * π) * σ(i))) * exp(cterm) # * Another source of instability
     denom = num + (1 - p)
     pstar = num / denom
     return (pstar)
@@ -166,12 +172,12 @@ end
 
 function xr(a, m)
     central_agent = m[1]
-    xᵣₐ = (o(a) - o(central_agent)) / σ(central_agent)
+    xᵣₐ = (o(a) - o(central_agent)) / σ(central_agent) # * Another source
 end
 
 function xr!(a, m)
     central_agent = m[1]
-    xᵣₐ = (o(a) - o(central_agent)) / σ(central_agent)
+    xᵣₐ = (o(a) - o(central_agent)) / σ(central_agent) # * Another source
     a.r = xᵣₐ
 end
 

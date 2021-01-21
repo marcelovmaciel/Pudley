@@ -25,3 +25,8 @@
   naquela região. É só parar antes de dar problema e ver como as partículas
   probe se comportam em função da distância. Deveria dar que até uma certa
   distância se aproximam, depois se afastam.
+* TODO [#A] Discover source of instability
+- Turn into log ??
+- See his continuous article!!!
+- Potential source 1-2 : [[file:src/01-basefns.jl::-(o(i) - o(j))^2 / (2 * σ(i)^2) # * Possible source of instability here][Source 1: changingterm]]
+- Potential source 3-4 : [[file:src/01-basefns.jl::xᵣₐ = (o(a) - o(central_agent)) / σ(central_agent) # * Another source][Source 3-4: xr]]
