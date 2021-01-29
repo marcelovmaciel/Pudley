@@ -10,13 +10,11 @@ mutable struct Agent_o{Posfield<:Int,
     r::Ofield
 end
 
-
 #the params of an empty agent
 #(maybe use Parameters here, it would indeed simplify things)
 const unitparams = NamedTuple{(:id, :pos, :old_o, :new_o,
                                :old_σ, :new_σ,:r)}((0, 0, big(0.0), big(0.0),
                                                     big(2.0), big(2.0),big(0.0)))
-
 function Agent_o()
     Agent_o(unitparams...)
 end
@@ -29,8 +27,6 @@ function model(agentype, myspace, scheduler, p = 0.3)
             properties = Dict(:p => p))
 end
 
-#myscheduler(m) = Abm.keys(m.agents)
-#model(n) = model(Agent_o, space(n), myscheduler)
 model(n, p) = model(typeof(Agent_o()), space(n), Abm.by_id, p)
 
 function emptypop(agent_type, n::Int)
@@ -49,8 +45,7 @@ o(a::Agent_o) = a.old_o
 const centralagentpos = 1
 const probeagentpos = 2
 
-
-function fillpop!(pop, opinionarray, σ, probeo,
+function fillpop!(pop, opinionarray, sigma, probeo,
                   agent_type = typeof(Agent_o()),
                   centralagentpos = centralagentpos,
                   probeagentpos = probeagentpos)
@@ -73,43 +68,31 @@ function fillpop!(pop, opinionarray, σ, probeo,
 
     # special agents initialization
     pop[centralagentpos] = agent_type(centralagent_fieldvalues...)
+
     pop[probeagentpos] = agent_type(probeagent_fieldvalues...)
 
     # normal agents initialization
     for i = probeagentpos+1:poplen
-        pop[i] = agent_type(i, i, opinionarray[i], opinionarray[i], σ, σ,
+        pop[i] = agent_type(i, i, opinionarray[i], opinionarray[i], sigma, sigma,
         big(0.0))
 
     end
 
+
     # agents actual r initialization
     for i = centralagentpos+1:poplen
-        setfield!(pop[i], :r, (o(pop[i]) - o(pop[1])) / σ(pop[1]))
+        setr = (o(pop[i]) - o(pop[1])) / σ(pop[1])
+        pop[i].r = setr
     end
+ # (o(pop[i]) - o(pop[1])) / σ(pop[1])
 
-    return (pop)
+
+    return(pop)
 end
 
-# function fillpop!(pop, opinion::BigFloat, σ, agent_type = Agent_o)
-#     poplen = length(pop)
-#     pop[1] = agent_type(1, 1, big(0.0), big(0.0), big(1.0), big(1.0), big(0.0))
-#     for i = 2:poplen
-#         pop[i] = agent_type(i, i, opinion, opinion, σ, σ, big(0.0))
-#         setfield!(pop[i], :r,
-#                   (geto(pop[i]) - geto(pop[1])) /getσ(pop[1]))
-#     end
-#     return (pop)
-# end
-
-function createpop(agent_type, n, σ, interval, probeo)
-    fillpop!(emptypop(agent_type, n), opinionarray(interval, n), σ, probeo)
+function createpop(agent_type, n, sigma, interval, probeo)
+    fillpop!(emptypop(agent_type, n), opinionarray(interval, n), sigma, probeo)
 end
-
-# function createpop(agent_type, n, σ, opinion::BigFloat)
-#     fillpop!(emptypop(agent_type, n), opinion, σ)
-# end
-
-# createpop(n) = createpop(Agent_o, 2, (-5, 5),n)
 
 function fillmodel!(m, population)
     for i = 1:length(population)
@@ -117,14 +100,6 @@ function fillmodel!(m, population)
     end
     return (m)
 end
-
-# function fillmodel!(m, n, σ, interval, agent_type = Agent_o)
-#     population = createpop(agent_type, n, σ, interval)
-#     for i = 1:n
-#         Abm.add_agent!(population[i], i, model)
-#     end
-#     return (m)
-# end
 
 function getjtointeract(a, m = m)
     m[rand(Abm.node_neighbors(a, m))]
@@ -138,7 +113,6 @@ function getjstointeract(m)::Vector{Agent_o}
     end
     return (js)
 end
-
 
 function changingterm★(i, j)
     -(o(i) - o(j))^2 / (2 * σ(i)^2) # * Possible source of instability here
@@ -175,13 +149,13 @@ function xr(a, m)
     xᵣₐ = (o(a) - o(central_agent)) / σ(central_agent) # * Another source
 end
 
+
 function xr!(a, m)
     central_agent = m[1]
     xᵣₐ = (o(a) - o(central_agent)) / σ(central_agent) # * Another source
     a.r = xᵣₐ
 end
 
-#calcr(sigmastar, oldsigma) = sigmastar / oldsigma
 
 function model_initialize(;
                           nagents = 200,
@@ -196,12 +170,6 @@ function model_initialize(;
     return (m)
 end
 
-# function model_initialize(; n = 200, σ = big(1.0), opinion = big(1.0), agent_type = Agent_o)
-#     m = model(n)
-#     population = createpop(agent_type, n, σ, opinion)
-#     fillmodel!(m, population)
-#     return (m)
-# end
 
 function agent_step!(a, m)
     p = m.p
@@ -212,7 +180,6 @@ function agent_step!(a, m)
     update_o!(a, newo)
     update_sigma!(a, σ★)
 end
-
 
 function updateold(a)
     a.old_o = a.new_o

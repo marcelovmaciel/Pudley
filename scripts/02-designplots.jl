@@ -4,9 +4,10 @@ using Revise, DrWatson
 import Pudley
 const pdl = Pudley
 using DataFrames
-import IterTools, Transducers
+import IterTools
 const It = IterTools
-const trans = Transducers
+
+
 
 #=
 -------------------------------------------------------------------
@@ -24,23 +25,22 @@ variable. =#
 
 readdir(paramsroot)
 
+# i want all but the first
 
-
-paramsname = readdir(paramsroot)[1]
+paramnames = readdir(paramsroot)[2:end-1]
 
 #=
 In which I get the full path of the parameters I want ⇒ `paramspath`
 =#
 
-paramspath = joinpath(paramsroot, paramsname)
+paramspaths = map( name -> joinpath(paramsroot, name), paramnames )
 
 #= In which I load the params and then filter because the .bson has uneeded
 information such as :gitcommit and :gitpatch =#
-
-params = (paramspath |>
+paramss = map(path -> path |>
           load |>
           params -> [(k, v) for (k, v) in params if typeof(v) != String] |>
-          Dict)
+          Dict, paramspaths)
 
 # In which i finally load the dataset
 
@@ -55,7 +55,18 @@ function getnamehelper(param, extension)
         filter(!isspace, savename(param, extension; allowedtypes = typeof.(values(param))))
 end
 
-data = DataFrame(load(datadir("sim", "testprobe", getnamehelper(params, "csv"))))
+try
+    datas = map(params -> DataFrame(load(datadir("sim", "testprobe",
+                                                 getnamehelper(params, "csv")))), paramss)
+catch e
+    try
+            datas = map(params -> DataFrame(load(datadir("sim", "testprobe",
+                                                 getnamehelper(params, "csv")))), paramss)
+    catch y
+        warn("Ok, not reading the data for some fucking reason")
+    end
+end
+
 
 #=
 ----------------------------------------------------------------------------------------------------------------------------------
@@ -67,15 +78,24 @@ have to zoom a subset:
 =#
 
 # in which get only central and probe agent data:
-filteredcentralprobe =
-    filter(x -> ((x.id == pdl.centralagentpos) || (x.id == pdl.probeagentpos)), data)
+filteredcentralprobes =
+    map(data -> filter(x -> ((x.id == pdl.centralagentpos) || (x.id == pdl.probeagentpos)), data),
+        datas)
+
+datas = nothing
+
+# * Until here I get wtf is happening
+
+
+initial_probe = filter(x -> (x.id == 2) && (x.step == 0), data)
+final_probe = filter(x -> (x.id == 2) && (x.step == 200), data)
 
 # in which get the central and probe agent mean data over repetitions of the
 # simulation:
-mean_centralprobe = combine(
-    groupby(filteredcentralprobe, [:probeo, :id, :step]),
-    [:r, :old_σ, :old_o] .=> pdl.Stats.mean,
-)
+mean_centralprobe = map(data -> combine(
+    groupby(data, [:id, :step]),
+    [:r, :old_σ, :old_o] .=> pdl.Stats.mean,), filteredcentralprobes)
+
 
 # get data until a certain step
 untilstep(step, data = mean_centralprobe) = filter(x -> x.step <= step, data)
@@ -126,7 +146,6 @@ end
 
 
 # Trying to animate
-
 steps = []
 r_means = []
 

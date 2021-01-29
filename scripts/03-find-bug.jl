@@ -9,6 +9,16 @@ big(0.0), big(0.0), big(2.0), big(2.0), big(0.0)))
 
 
 
+using Pudley
 
+foo = pdl.Agent_o()
+
+setfield!(foo, :r , (pdl.o(foo) - pdl.o(foo)) / pdl.σ(foo))
 
 getproperty(pdl.unitparams, :id)
+
+
+
+
+
+probeo
