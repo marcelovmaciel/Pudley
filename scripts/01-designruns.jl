@@ -8,23 +8,20 @@ addprocs(3)
 @everywhere const pdl = Pudley
 
 
-@everywhere prb = collect(LinRange(0, 1, 11))
-
+@everywhere prb = [0.01, 0.05, 0.1, 0.2, 0.5 , 1.0]
 @everywhere function runplz(i)
     global prb
-    nagents = 5000;
-    p = 0.5;
-    interval = (0, 1); probeo = prb[i];
-    parameters = @dict nagents  interval  probeo p ;
+    ; probeo = prb[i];
+    parameters = @dict probeo;
     nsteps = 200;
     agent_properties = [ :r, :old_σ, :old_o];
     name = filter(!isspace, savename(parameters, "csv"; allowedtypes = typeof.(values(parameters))));
-    when = 0:50:nsteps
+    when = 0:20:nsteps
 
 
     data, _  = pdl.Abm.paramscan(parameters, pdl.model_initialize;
                                  adata = agent_properties, agent_step! = pdl.agent_step!,
-                                 model_step! = pdl.model_step!, n = nsteps, replicates = 48,
+                                 model_step! = pdl.model_step!, n = nsteps, replicates = 100,
                                  progress = true, parallel = true, when = when)
 
     paramname = filter(!isspace, savename(parameters, "bson"; allowedtypes = typeof.(values(parameters))))
@@ -43,7 +40,4 @@ runplz(3)
 runplz(4)
 runplz(5)
 runplz(6)
-runplz(7)
-runplz(8)
-runplz(9)
-runplz(10)
+

@@ -1,6 +1,5 @@
-mutable struct Agent_o{Posfield<:Int,
-                       Ofield<:AbstractFloat,
-                       Sigmafield<:AbstractFloat} <:Abm.AbstractAgent
+# * Initial structures
+mutable struct Agent_o{Posfield <: Int,Ofield <: AbstractFloat,Sigmafield <: AbstractFloat} <: Abm.AbstractAgent
     id::Posfield
     pos::Posfield
     old_o::Ofield
@@ -10,11 +9,12 @@ mutable struct Agent_o{Posfield<:Int,
     r::Ofield
 end
 
-#the params of an empty agent
-#(maybe use Parameters here, it would indeed simplify things)
+# the params of an empty agent
+# (maybe use Parameters here, it would indeed simplify things)
 const unitparams = NamedTuple{(:id, :pos, :old_o, :new_o,
-                               :old_σ, :new_σ,:r)}((0, 0, big(0.0), big(0.0),
-                                                    big(2.0), big(2.0),big(0.0)))
+                               :old_σ, :new_σ, :r)}((0, 0, big(0.0), big(0.0),
+                                                    big(2.0), big(2.0), big(0.0)))
+
 function Agent_o()
     Agent_o(unitparams...)
 end
@@ -22,9 +22,9 @@ end
 space(n::Int, graph) = Abm.GraphSpace(graph(n))
 space(n) = space(n, LG.complete_graph)
 
-function model(agentype, myspace, scheduler, p = 0.3)
-    Abm.ABM(agentype, myspace, scheduler = scheduler,
-            properties = Dict(:p => p))
+function model(agentype, myspace, scheduler, p=0.3)
+    Abm.ABM(agentype, myspace, scheduler=scheduler,
+            properties=Dict(:p => p))
 end
 
 model(n, p) = model(typeof(Agent_o()), space(n), Abm.by_id, p)
@@ -33,7 +33,7 @@ function emptypop(agent_type, n::Int)
     Vector{agent_type}(undef, n)
 end
 
-function opinionarray(interval, n, distribution = Dist.Uniform)
+function opinionarray(interval, n, distribution=Dist.Uniform)
     opinions = Vector{BigFloat}(undef, n)
     @. opinions = big(rand(distribution(interval[1], interval[2])))
     return (opinions)
@@ -46,25 +46,50 @@ const centralagentpos = 1
 const probeagentpos = 2
 
 function fillpop!(pop, opinionarray, sigma, probeo,
-                  agent_type = typeof(Agent_o()),
-                  centralagentpos = centralagentpos,
-                  probeagentpos = probeagentpos)
+                  agent_type=typeof(Agent_o());
+                  centralagentpos=centralagentpos,
+                  probeagentpos=probeagentpos, interval = interval)
     # special agents constants
     poplen = length(pop)
 
-    centralagent_fieldvalues = NamedTuple{(:id, :pos, :old_o,
-                                           :new_o, :old_σ,
-                                           :new_σ, :r)}((centralagentpos,
-                                                         centralagentpos,
-                                                         big(0.0), big(0.0),
-                                                         big(1.0), big(1.0),
-                                                         big(0.0)))
+    stub_r = big(0.0)
 
-    probeagent_fieldvalues = NamedTuple{(:id, :pos, :old_o,
-                                         :new_o, :old_σ,:new_σ,
-                                         :r)}((probeagentpos, probeagentpos,
-                                               big(probeo), big(probeo), big(1.0),
-                                               big(1.0), big(0.0)))
+    mean_interval(interv) = (max(interv...) + min(interv...)) / 2 
+
+    centralagentopinion = mean_interval(interval) |> big 
+
+    centralagent_fieldvalues = NamedTuple{(
+                                        :id, 
+                                        :pos,
+                                        :old_o,
+                                        :new_o,
+                                        :old_σ,
+                                        :new_σ,
+                                        :r)}((
+                                            centralagentpos,
+                                            centralagentpos,
+                                            centralagentopinion,
+                                            centralagentopinion,
+                                            sigma, 
+                                            sigma,
+                                            stub_r))
+
+    probeagent_fieldvalues = NamedTuple{(
+                                        :id,
+                                        :pos,
+                                        :old_o,
+                                        :new_o,
+                                        :old_σ,
+                                        :new_σ,
+                                        :r)}((
+                                            probeagentpos,
+                                            probeagentpos,
+                                            probeo,
+                                            probeo,
+                                            sigma,
+                                            sigma,
+                                            stub_r))
+
 
     # special agents initialization
     pop[centralagentpos] = agent_type(centralagent_fieldvalues...)
@@ -72,26 +97,28 @@ function fillpop!(pop, opinionarray, sigma, probeo,
     pop[probeagentpos] = agent_type(probeagent_fieldvalues...)
 
     # normal agents initialization
-    for i = probeagentpos+1:poplen
-        pop[i] = agent_type(i, i, opinionarray[i], opinionarray[i], sigma, sigma,
-        big(0.0))
+    for i = probeagentpos + 1:poplen
+        pop[i] = agent_type(i, i, opinionarray[i],
+                            opinionarray[i], sigma, sigma,
+                            stub_r)
 
     end
 
 
     # agents actual r initialization
-    for i = centralagentpos+1:poplen
+    for i = centralagentpos + 1:poplen
         setr = (o(pop[i]) - o(pop[1])) / σ(pop[1])
         pop[i].r = setr
     end
- # (o(pop[i]) - o(pop[1])) / σ(pop[1])
+
+    # (o(pop[i]) - o(pop[1])) / σ(pop[1])
 
 
     return(pop)
 end
 
 function createpop(agent_type, n, sigma, interval, probeo)
-    fillpop!(emptypop(agent_type, n), opinionarray(interval, n), sigma, probeo)
+    fillpop!(emptypop(agent_type, n), opinionarray(interval, n), sigma, probeo,interval=interval)
 end
 
 function fillmodel!(m, population)
@@ -101,7 +128,8 @@ function fillmodel!(m, population)
     return (m)
 end
 
-function getjtointeract(a, m = m)
+# * Interaction procs
+function getjtointeract(a, m=m)
     m[rand(Abm.node_neighbors(a, m))]
 end
 
@@ -115,12 +143,12 @@ function getjstointeract(m)::Vector{Agent_o}
 end
 
 function changingterm★(i, j)
-    -(o(i) - o(j))^2 / (2 * σ(i)^2) # * Possible source of instability here
+    -((o(i) - o(j))^2) / (4 * σ(i)^2) # * Possible source of instability here
 end
 
 function calculatep★(p::AbstractFloat, i, j)
     cterm = changingterm★(i, j)
-    num = p * (1 / (√(2 * π) * σ(i))) * exp(cterm) # * Another source of instability
+    num = p * (1 / (2 * √(π) * σ(i))) * exp(cterm) # * Another source of instability
     denom = num + (1 - p)
     pstar = num / denom
     return (pstar)
@@ -158,12 +186,12 @@ end
 
 
 function model_initialize(;
-                          nagents = 200,
-                          σ = big(1.0),
-                          interval = (-20, 20),
-                          agent_type = Agent_o,
-                          probeo= 0.25,
-                          p = 0.3)
+                          nagents=200,
+                          σ=big(1.0),
+                          interval=(-20, 20),
+                          agent_type=Agent_o,
+                          probeo=big(0.25),
+                          p=big(0.05))
     m = model(nagents, p)
     population = createpop(agent_type, nagents, σ, interval, probeo)
     fillmodel!(m, population)
@@ -176,7 +204,7 @@ function agent_step!(a, m)
     b = getjtointeract(a, m)
     p★ = calculatep★(p, a, b)
     σ★ = calcσ★(p★, a, b)
-    newo = calc_posterior_o(p★, a, b) #/ calcr(σ★, σ(a))
+    newo = calc_posterior_o(p★, a, b) # / calcr(σ★, σ(a))
     update_o!(a, newo)
     update_sigma!(a, σ★)
 end
@@ -186,7 +214,6 @@ function updateold(a)
     a.old_σ = a.new_σ
     return a
 end
-
 
 function model_step!(model)
     for i in keys(model.agents)

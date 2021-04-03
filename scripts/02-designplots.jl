@@ -33,7 +33,7 @@ paramnames = readdir(paramsroot)[2:end-1]
 In which I get the full path of the parameters I want ⇒ `paramspath`
 =#
 
-paramspaths = map( name -> joinpath(paramsroot, name), paramnames )
+paramspaths = map(name -> joinpath(paramsroot, name), paramnames )
 
 #= In which I load the params and then filter because the .bson has uneeded
 information such as :gitcommit and :gitpatch =#
@@ -86,15 +86,16 @@ datas = nothing
 
 # * Until here I get wtf is happening
 
-
 initial_probe = filter(x -> (x.id == 2) && (x.step == 0), data)
 final_probe = filter(x -> (x.id == 2) && (x.step == 200), data)
 
 # in which get the central and probe agent mean data over repetitions of the
 # simulation:
-mean_centralprobe = map(data -> combine(
-    groupby(data, [:id, :step]),
-    [:r, :old_σ, :old_o] .=> pdl.Stats.mean,), filteredcentralprobes)
+mean_centralprobe = map(
+    data -> combine(
+        groupby(data, [:id, :step]),
+        [:r, :old_σ, :old_o] .=> pdl.Stats.mean,),
+    filteredcentralprobes)
 
 
 # get data until a certain step

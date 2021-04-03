@@ -1,24 +1,28 @@
 import Pkg
 
-using ClearStacktrace
-using JuliaFormatter
-format(".")
-
-
 Pkg.activate("../../Pudley")
 
 Pkg.instantiate()
-Pkg.precompile()
+Pkg.precompile( )
 
 import Revise
-import Pudley
-const pdl = Pudley
-using BenchmarkTools
-using Test
+import Pudley as pdl
+
+# * Constants
 
 n = 2
 interval = (-20,20)
+pop = pdl.emptypop(pdl.Agent_o, n)
+oarray =pdl.opinionarray(interval, n)
+σ = big(1.)
+filledpop = pdl.createpop(pdl.Agent_o, n, σ, interval)
+m = pdl.model(2)
+apair = map(i -> pdl.Abm.id2agent(i,m),
+            (1,2))
+p = 0.9
+p★ = pdl.calculatep★(p, apair...)
 
+# * Tests
 let agent = pdl.Agent_o()
     for i in fieldnames(typeof(agent))
         @assert getfield(pdl.unitparams, i)  == getfield(agent, i)
@@ -40,9 +44,6 @@ end
 @time pdl.opinionarray(interval, n)
 @inferred pdl.opinionarray(interval, n)
 
-pop = pdl.emptypop(pdl.Agent_o, n)
-oarray =pdl.opinionarray(interval, n)
-σ = big(1.)
 
 @code_warntype  pdl.fillpop!(pop, oarray, σ)
 @time pdl.fillpop!(pop, oarray, σ)
@@ -52,14 +53,13 @@ oarray =pdl.opinionarray(interval, n)
 @time pdl.createpop(pdl.Agent_o, n, σ, interval)
 @inferred pdl.createpop(pdl.Agent_o, n, σ, interval)
 
-filledpop = pdl.createpop(pdl.Agent_o, n, σ, interval)
+
 @testset "Test central agent attributes" begin
 
     @test filledpop[1].id == 1
     @test filledpop[1].old_o == big(0.)
 end
 
-m = pdl.model(2)
 
 @code_warntype pdl.fillmodel!(m, filledpop)
 @time pdl.fillmodel!(m, filledpop)
@@ -79,20 +79,15 @@ m = pdl.model(2)
 @inferred  pdl.o(filledpop[1])
 @inferred pdl.o(pdl.Abm.id2agent(1,m))
 
-apair = map(i -> pdl.Abm.id2agent(i,m),
-            (1,2))
 
 @code_warntype pdl.changingterm★(apair...)
 @time pdl.changingterm★(apair...)
 @inferred pdl.changingterm★(apair...)
 
-p = 0.9
-
 @code_warntype pdl.calculatep★(p, apair...)
 @time pdl.calculatep★(p, apair...)
 @inferred pdl.calculatep★(p, apair...)
 
-p★ = pdl.calculatep★(p, apair...)
 
 @code_warntype pdl.calc_posterior_o(p★, apair...)
 @time pdl.calc_posterior_o(p★, apair...)

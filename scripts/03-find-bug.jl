@@ -8,8 +8,7 @@ unitparams = NamedTuple{(:id, :pos, :old_o, :new_o, :old_σ, :new_σ, :r)}((0, 0
 big(0.0), big(0.0), big(2.0), big(2.0), big(0.0)))
 
 
-
-using Pudley
+m = pdl.model_initialize()
 
 foo = pdl.Agent_o()
 
@@ -19,6 +18,11 @@ getproperty(pdl.unitparams, :id)
 
 
 
+interval = (-20, 20)
+
+mean_interval(interv) = (max(interv...) + min(interv...)) / 2 
+
+mean_interval(interval)     
 
 
-probeo
+typeof(pdl.Agent_o())
